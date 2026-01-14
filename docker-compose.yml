@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  postgres:
+    build: ./postgres
+    container_name: ${DATABASE}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${ARCAEA_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${ARCAEA_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build: ./server
+    container_name: arcaea_api
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${ARCAEA_DB}
+      NODE_ENV: development
+      AUDIO_STORAGE_PATH: ${AUDIO_STORAGE_PATH:-./storage/audio}
+    volumes:
+      - ${AUDIO_STORAGE_PATH}:/app/storage/audio
+      - ./server/src:/app/src
+
+  extractor:
+    build: ./essentia
+    container_name: ${EXTRACTOR}
+    # ports:
+    #   - "5000:5000"
+
+volumes:
+  postgres_data:

@@ -1,0 +1,288 @@
+Feature extractors
+AudioSet-VGGish
+Audio embedding model accompanying the AudioSet dataset, trained in a supervised manner using tag information for YouTube videos.
+
+Models:
+
+⬇️ audioset-vggish
+
+[weights, metadata]
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictVGGish
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictVGGish(graphFilename="audioset-vggish-3.pb", output="model/vggish/embeddings")
+embeddings = model(audio)
+Discogs-EffNet
+Audio embedding models trained with classification and contrastive learning objectives using an in-house dataset annotated with Discogs metadata. The classification model was trained to predict music style labels. The contrastive learning models were trained to learn music similarity capable of grouping audio tracks coming from the same artist, label (record label), release (album), or segments of the same track itself (self-supervised learning). Additionally, multi was trained in multiple similarity targets simultaneously.
+
+Models:
+
+⬇️ discogs-effnet-bs64
+
+[weights, metadata]
+
+Model trained with a multi-label classification objective targeting 400 Discogs styles.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictEffnetDiscogs(graphFilename="discogs-effnet-bs64-1.pb", output="PartitionedCall:1")
+embeddings = model(audio)
+⬇️ discogs_artist_embeddings-effnet-bs64
+
+[weights, metadata]
+
+Model trained with a contrastive learning objective targeting artist associations.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictEffnetDiscogs(graphFilename="discogs_artist_embeddings-effnet-bs64-1.pb", output="PartitionedCall:1")
+embeddings = model(audio)
+⬇️ discogs_label_embeddings-effnet-bs64
+
+[weights, metadata]
+
+Model trained with a contrastive learning objective targeting record label associations.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictEffnetDiscogs(graphFilename="discogs_label_embeddings-effnet-bs64-1.pb", output="PartitionedCall:1")
+embeddings = model(audio)
+⬇️ discogs_multi_embeddings-effnet-bs64
+
+[weights, metadata]
+
+Model trained with a contrastive learning objective targeting aritst and track associations in a multi-task setup.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictEffnetDiscogs(graphFilename="discogs_multi_embeddings-effnet-bs64-1.pb", output="PartitionedCall:1")
+embeddings = model(audio)
+⬇️ discogs_release_embeddings-effnet-bs64
+
+[weights, metadata]
+
+Model trained with a contrastive learning objective targeting release (album) associations.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictEffnetDiscogs(graphFilename="discogs_release_embeddings-effnet-bs64-1.pb", output="PartitionedCall:1")
+embeddings = model(audio)
+⬇️ discogs_track_embeddings-effnet-bs64
+
+[weights, metadata]
+
+Model trained with a contrastive learning objective targeting track (self-supervised) associations.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictEffnetDiscogs(graphFilename="discogs_track_embeddings-effnet-bs64-1.pb", output="PartitionedCall:1")
+embeddings = model(audio)
+Note: We provide models operating with a fixed batch size of 64 samples since it was not possible to port the version with dynamic batch size from ONNX to TensorFlow. Additionally, an ONNX version of the model with dynamic batch size is provided.
+
+MAEST
+Music Audio Efficient Spectrogram Transformer (MAEST) trained to predict music style labels using an in-house dataset annotated with Discogs metadata. We offer versions of MAEST trained with sequence lengths ranging from 5 to 30 seconds (5s, 10s, 20s, and 30s), and trained starting from different intial weights: from random initialization (fs), from DeiT pre-trained weights (dw), and from PaSST pre-trained weights (pw). Additionally, we offer a version of MAEST trained following a teacher student setup (ts). According to our study discogs-maest-30s-pw, achieved the most competitive performance in most downstream tasks (refer to the paper for details).
+
+The output embeddings have shape [batch_size, 1, tokens, embedding_size], where the first and second tokens (i.e., [0, 0, :2, :] ) correspond to the CLS and DIST tokens respectively, and the following ones to input signal. To train downstream models, we recommend using the embeddings from the CLS token, or stacking the CLS, DIST, and the average of the input signal tokens for slightly better performance (refer to the paper for details).
+
+In the following examples, we extract embeddings from the 7th layer of the transformer since this is what performed the best in our downstream classification tasks. To extract embeddings from other layers, change the output parameter according to the layer names provided in the metadata files.
+
+Models:
+
+⬇️ discogs-maest-30s-pw-519l
+
+[weights, metadata]
+
+Model trained with a multi-label classification objective targeting 519 Discogs styles on an extended dataset of 4M tracks.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictMAEST
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictMAEST(graphFilename="discogs-maest-30s-pw-519l-2.pb", output="PartitionedCall/Identity_7")
+embeddings = model(audio)
+⬇️ discogs-maest-30s-pw
+
+[weights, metadata]
+
+Model trained with a multi-label classification objective targeting 400 Discogs styles.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictMAEST
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictMAEST(graphFilename="discogs-maest-30s-pw-2.pb", output="PartitionedCall/Identity_7")
+embeddings = model(audio)
+⬇️ discogs-maest-30s-pw-ts
+
+[weights, metadata]
+
+Model trained with a multi-label classification objective targeting 400 Discogs styles.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictMAEST
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictMAEST(graphFilename="discogs-maest-30s-pw-ts-2.pb", output="PartitionedCall/Identity_7")
+embeddings = model(audio)
+⬇️ discogs-maest-20s-pw
+
+[weights, metadata]
+
+Model trained with a multi-label classification objective targeting 400 Discogs styles.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictMAEST
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictMAEST(graphFilename="discogs-maest-20s-pw-2.pb", output="PartitionedCall/Identity_7")
+embeddings = model(audio)
+⬇️ discogs-maest-10s-pw
+
+[weights, metadata]
+
+Model trained with a multi-label classification objective targeting 400 Discogs styles.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictMAEST
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictMAEST(graphFilename="discogs-maest-10s-pw-2.pb", output="PartitionedCall/Identity_7")
+embeddings = model(audio)
+⬇️ discogs-maest-10s-fs
+
+[weights, metadata]
+
+Model trained with a multi-label classification objective targeting 400 Discogs styles.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictMAEST
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictMAEST(graphFilename="discogs-maest-10s-fs-2.pb", output="PartitionedCall/Identity_7")
+embeddings = model(audio)
+⬇️ discogs-maest-10s-dw
+
+[weights, metadata]
+
+Model trained with a multi-label classification objective targeting 400 Discogs styles.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictMAEST
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictMAEST(graphFilename="discogs-maest-10s-dw-2.pb", output="PartitionedCall/Identity_7")
+embeddings = model(audio)
+⬇️ discogs-maest-5s-pw
+
+[weights, metadata]
+
+Model trained with a multi-label classification objective targeting 400 Discogs styles.
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictMAEST
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictMAEST(graphFilename="discogs-maest-5s-pw-2.pb", output="PartitionedCall/Identity_7")
+embeddings = model(audio)
+Note: discogs-maest-30s-pw-519l is an updated version of MAEST trained on a larger dataset of 4M tracks and 519 music style lables. It is expected to show slightly better performance.
+
+Note: We provide TensorFlow models operating with a fixed batch size of 1. Additionally, ONNX version of the models supporting dynamic batch sizes are provided.
+
+OpenL3
+Audio embedding models trained on audio-visual correspondence in a self-supervised manner. There are different versions of OpenL3 trained on environmental sound (env) or music (music) datasets, using 128 (mel128) or 256 (mel256) mel-bands, and with 512 (emb512) or 6144 (emb6144) embedding dimensions.
+
+Models:
+
+⬇️ openl3-env-mel128-emb512
+
+[weights, metadata]
+
+We do not have a dedicated algorithm to extract embeddings with this model. For now, OpenL3 embeddings can be extracted using this script.
+
+⬇️ openl3-env-mel128-emb6144
+
+[weights, metadata]
+
+We do not have a dedicated algorithm to extract embeddings with this model. For now, OpenL3 embeddings can be extracted using this script.
+
+⬇️ openl3-env-mel256-emb512
+
+[weights, metadata]
+
+We do not have a dedicated algorithm to extract embeddings with this model. For now, OpenL3 embeddings can be extracted using this script.
+
+⬇️ openl3-env-mel256-emb6144
+
+[weights, metadata]
+
+We do not have a dedicated algorithm to extract embeddings with this model. For now, OpenL3 embeddings can be extracted using this script.
+
+⬇️ openl3-music-mel128-emb512
+
+[weights, metadata]
+
+We do not have a dedicated algorithm to extract embeddings with this model. For now, OpenL3 embeddings can be extracted using this script.
+
+⬇️ openl3-music-mel128-emb6144
+
+[weights, metadata]
+
+We do not have a dedicated algorithm to extract embeddings with this model. For now, OpenL3 embeddings can be extracted using this script.
+
+⬇️ openl3-music-mel256-emb512
+
+[weights, metadata]
+
+We do not have a dedicated algorithm to extract embeddings with this model. For now, OpenL3 embeddings can be extracted using this script.
+
+⬇️ openl3-music-mel256-emb6144
+
+[weights, metadata]
+
+We do not have a dedicated algorithm to extract embeddings with this model. For now, OpenL3 embeddings can be extracted using this script.
+
+MSD-MusiCNN
+A Music embedding extractor based on auto-tagging with the 50 most common tags of the Million Song Dataset.
+
+Models:
+
+⬇️ msd-musicnn
+
+[weights, metadata]
+
+Python code for embedding extraction:
+
+from essentia.standard import MonoLoader, TensorflowPredictMusiCNN
+
+audio = MonoLoader(filename="audio.wav", sampleRate=16000, resampleQuality=4)()
+model = TensorflowPredictMusiCNN(graphFilename="msd-musicnn-1.pb", output="model/dense/BiasAdd")
+embeddings = model(audio)

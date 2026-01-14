@@ -1,0 +1,7 @@
+.env 
+
+node_modules/
+
+# essentia weights & metadata
+essentia/weights/
+server/model_metadata/
