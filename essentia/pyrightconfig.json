@@ -1,0 +1,13 @@
+{
+    "pythonVersion": "3.12",
+    "venvPath": "/home/me2hard/Code/ARCAEA_BACKEND",
+    "venv": ".venv",
+    "stubPath": "./typings",
+    "include": [
+        "."
+    ],
+    "exclude": [
+        ".venv"
+    ],
+    "typeCheckingMode": "basic"
+}

@@ -1,0 +1,13 @@
+{
+  "python.defaultInterpreterPath": "/home/me2hard/Code/ARCAEA_BACKEND/.venv/bin/python",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": false,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python",
+    "editor.formatOnSave": true
+  },
+  "python.analysis.typeshedPath": "/home/me2hard/Code/ARCAEA_BACKEND/essentia/typings",
+  "python.analysis.extraPaths": ["/home/me2hard/Code/ARCAEA_BACKEND/essentia/typings"],
+  "python.analysis.typeCheckingMode": "basic",
+  "pylance.typeCheckingMode": "basic"
+}

@@ -6,13 +6,6 @@ const pg_user = process.env.POSTGRES_USER;
 const arcaea_db = process.env.ARCAEA_DB;
 const extractor_url = process.env.EXTRACTOR_URL;
 
-console.log(
-    pg_pwd,
-    pg_user,
-    arcaea_db,
-    extractor_url
-)
-
 const app = express();
 
 app.use(express.json());
