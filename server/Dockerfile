@@ -24,6 +24,8 @@ COPY src ./src
 # Copy model metadata
 COPY model_metadata/ ./model_metadata/
 
+COPY index.html ./
+
 # Create audio temp directory
 RUN mkdir -p /app/aud_tmp
 
