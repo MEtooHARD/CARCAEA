@@ -6,3 +6,6 @@ node_modules/
 # essentia weights & metadata
 essentia/weights/
 server/model_metadata/
+
+test/_aud/
+test/audio_samples/

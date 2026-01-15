@@ -1,5 +1,5 @@
 import { Kysely, PostgresDialect } from "kysely";
-import type { DB } from "./database.d";
+import type { DB } from "./database_schema";
 import { Pool } from "pg";
 
 const dialect = new PostgresDialect({
