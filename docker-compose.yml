@@ -19,7 +19,7 @@ services:
     build: ./server
     container_name: arcaea_api
     ports:
-      - "3001:3001"
+      - "3001:3000"
     depends_on:
       postgres:
         condition: service_healthy
