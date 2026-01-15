@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>YouTube Audio Downloader</title>
+</head>
+
+<body>
+    <h1>YouTube Audio Downloader Test</h1>
+
+    <div style="margin-bottom: 20px;">
+        <label>YouTube URL:</label><br>
+        <input type="url" id="youtubeUrl" value="https://youtu.be/9bZkp7q19f0"
+            style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box;"><br>
+        <button onclick="startDownload()" style="padding: 8px 16px;">Download</button>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label>Target URL:</label><br>
+        <input type="text" id="targetUrl"
+            style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; background: #f0f0f0;">
+    </div>
+
+    <p>Status: <span id="statusBadge" style="font-weight: bold;">Ready</span></p>
+
+    <div id="log"
+        style="border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; background: #f9f9f9;">
+        Waiting for download...
+    </div>
+
+    <script>
+        let eventSource = null;
+
+        function updateTargetUrl() {
+            const url = document.getElementById('youtubeUrl').value.trim();
+            if (url) {
+                const apiUrl = `http://3.107.5.231:3001/songs/upload/youtube?link=${url}`;
+                document.getElementById('targetUrl').value = apiUrl;
+            } else {
+                document.getElementById('targetUrl').value = '';
+            }
+        }
+
+        function addLog(msg) {
+            const log = document.getElementById('log');
+            log.textContent += '\n' + msg;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function startDownload() {
+            const url = document.getElementById('youtubeUrl').value.trim();
+
+            if (!url) {
+                alert('Please enter a YouTube URL');
+                return;
+            }
+
+            const log = document.getElementById('log');
+            log.textContent = '';
+            document.getElementById('statusBadge').textContent = 'Downloading...';
+
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            const encodedUrl = encodeURIComponent(url);
+            const apiUrl = `http://localhost:3001/songs/upload/youtube?link=${encodedUrl}`;
+
+            addLog(`[${new Date().toLocaleTimeString()}] Starting download: ${url}`);
+
+            eventSource = new EventSource(apiUrl);
+
+            eventSource.addEventListener('start', (event) => {
+                const data = JSON.parse(event.data);
+                addLog(`[${new Date().toLocaleTimeString()}] 🚀 ${data.message}`);
+            });
+
+            eventSource.addEventListener('progress', (event) => {
+                const data = JSON.parse(event.data);
+                addLog(`[${new Date().toLocaleTimeString()}] ⏳ ${data.message}`);
+            });
+
+            eventSource.addEventListener('complete', (event) => {
+                const data = JSON.parse(event.data);
+                addLog(`[${new Date().toLocaleTimeString()}] ✅ ${data.message}`);
+                document.getElementById('statusBadge').textContent = 'Complete!';
+                eventSource.close();
+            });
+
+            eventSource.addEventListener('error', (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    addLog(`[${new Date().toLocaleTimeString()}] ❌ ${data.message}`);
+                } catch {
+                    // If not SSE event, try to read response body
+                    if (event.data) {
+                        try {
+                            const jsonData = JSON.parse(event.data);
+                            addLog(`[${new Date().toLocaleTimeString()}] ❌ ${JSON.stringify(jsonData, null, 2)}`);
+                        } catch {
+                            addLog(`[${new Date().toLocaleTimeString()}] ❌ ${event.data}`);
+                        }
+                    } else {
+                        addLog(`[${new Date().toLocaleTimeString()}] ❌ Connection error`);
+                    }
+                }
+                document.getElementById('statusBadge').textContent = 'Error';
+                eventSource.close();
+            });
+        }
+
+        document.getElementById('youtubeUrl').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                startDownload();
+            }
+        });
+
+        // Update target URL on page load and when YouTube URL changes
+        updateTargetUrl();
+        document.getElementById('youtubeUrl').addEventListener('input', updateTargetUrl);
+    </script>
+</body>
+
+</html>

@@ -1,12 +1,26 @@
-type Success<T> = [T, null];
+type _Success<T> = [T, null];
 
-type Failure<F> = [null, F];
+type _Failure<F> = [null, F];
 
-export type Result<T, F = any> = Success<T> | Failure<F>;
+export type _Result<T, F = any> = _Success<T> | _Failure<F>;
 
-export async function try_catch<T>(fn: Promise<T>): Promise<Result<T>> {
+export async function _try_catch<T>(fn: Promise<T>): Promise<_Result<T>> {
     try { return [await fn, null]; }
     catch (error: any) {
-        return [null, error.message || 'An error occurred without a specific message'];
+        return [null, error || 'An error occurred without a specific message'];
+    }
+}
+
+type Success<T> = { data: T; error: null };
+
+type Failure<F> = { data: null; error: F };
+
+export type Result<T, F> = Success<T> | Failure<F>;
+
+export async function try_catch<T, F = any>(promise: Promise<T>): Promise<Result<T, F>> {
+    try {
+        return { data: await promise, error: null };
+    } catch (error: any) {
+        return { data: null, error: error || 'An error occurred without a specific message' };
     }
 }

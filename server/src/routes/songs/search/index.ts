@@ -14,6 +14,81 @@ const V_MIN = 1, V_MAX = 9;
 const A_MIN = 1, A_MAX = 9;
 const TOL_MIN = 0, TOL_MAX = 5;
 
+/**
+ * @swagger
+ * /songs/search/by_va:
+ *   get:
+ *     summary: Search songs by valence and arousal
+ *     description: Find songs based on emotional characteristics (mood). Returns up to 25 matching songs sorted by emotional distance.
+ *     tags:
+ *       - Songs
+ *     parameters:
+ *       - name: valence
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *           minimum: 1
+ *           maximum: 9
+ *         description: Target emotional positivity (1=sad, 5=neutral, 9=happy)
+ *       - name: arousal
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *           minimum: 1
+ *           maximum: 9
+ *         description: Target energy level (1=calm, 5=moderate, 9=energetic)
+ *       - name: tolerance
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 5
+ *           default: 0.5
+ *         description: Search radius in emotional space (higher = broader results)
+ *     responses:
+ *       200:
+ *         description: Successfully found songs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 songs:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         description: SHA256 hash of audio file
+ *                       valence:
+ *                         type: number
+ *                         description: Emotional positivity score
+ *                       arousal:
+ *                         type: number
+ *                         description: Energy level score
+ *       400:
+ *         description: Invalid query parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Database error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function search(req: Request, res: Response) {
     try {
         const start = Date.now();

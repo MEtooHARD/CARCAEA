@@ -30,7 +30,7 @@ services:
       NODE_ENV: development
       AUDIO_STORAGE_PATH: ${AUDIO_STORAGE_PATH:-./storage/audio}
     volumes:
-      # - ./server/src:/app/src
+      - ./server/src:/app/src
       - ./test:/app/test
 
   extractor:

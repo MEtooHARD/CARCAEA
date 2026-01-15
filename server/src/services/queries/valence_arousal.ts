@@ -1,14 +1,14 @@
 import { sql } from "kysely";
 import { db } from "../../types/database";
-import { try_catch, type Result } from "../../types/Result";
+import { _try_catch, type _Result } from "../../types/Result";
 import type { SongVA } from "../../types/Songs";
 
 function emomusic_msd(
     valence: number,
     arousal: number,
     tolerance: number
-): Promise<Result<SongVA[]>> {
-    return try_catch(db.selectFrom('va_emomusic_msd_musicnn')
+): Promise<_Result<SongVA[]>> {
+    return _try_catch(db.selectFrom('va_emomusic_msd_musicnn')
         .select(['id', 'arousal', 'valence'])
         // .where(sql<boolean>`abs(valence - ${valence}) <= ${tolerance}`)
         // .where(sql<boolean>`abs(arousal - ${arousal}) <= ${tolerance}`)
