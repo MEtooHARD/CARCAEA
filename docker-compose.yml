@@ -19,7 +19,7 @@ services:
     build: ./server
     container_name: arcaea_api
     ports:
-      - "3001:3000"
+      - "3001:3001"
     depends_on:
       postgres:
         condition: service_healthy
@@ -29,9 +29,9 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${ARCAEA_DB}
       NODE_ENV: development
       AUDIO_STORAGE_PATH: ${AUDIO_STORAGE_PATH:-./storage/audio}
-    # volumes:
+    volumes:
       # - ./server/src:/app/src
-      # - ./test:/app/test
+      - ./test:/app/test
 
   extractor:
     build: ./essentia
