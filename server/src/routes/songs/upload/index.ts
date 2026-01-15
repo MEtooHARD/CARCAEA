@@ -341,8 +341,7 @@ router.get('/youtube', async (req: Request, res: Response) => {
  *               type: string
  */
 router.get('/uploader', (req: Request, res: Response) => {
-    const htmlPath = path.join(__dirname, '../../../../index.html');
-    res.sendFile(htmlPath);
+    res.sendFile('/app/index.html');
 });
 
 export default router;
