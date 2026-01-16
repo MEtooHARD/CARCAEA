@@ -54,11 +54,15 @@ async function downloadYoutubeAudioWithProgress(
             url
         ]);
 
+        let stderrOutput = '';
+
         ytdlp.stderr.on('data', (data: Buffer) => {
-            const lines = data.toString().split('\n');
+            const text = data.toString();
+            stderrOutput += text;
+            const lines = text.split('\n');
 
             lines.forEach((line: string) => {
-                if (line.includes('Downloading') || line.includes('Extracting') || line.includes('Converting')) {
+                if (line.includes('Downloading') || line.includes('Extracting') || line.includes('Converting') || line.includes('ERROR') || line.includes('error')) {
                     sendEvent(EventType.PROGRESS, JSON.stringify({ message: line.trim() }));
                 }
             });
@@ -72,11 +76,16 @@ async function downloadYoutubeAudioWithProgress(
         });
 
         ytdlp.on('close', (code: number) => {
-            if (code === 0) { resolve(); }
-            else { reject(new Error(`yt-dlp exited with code ${code}`)); }
+            if (code === 0) {
+                resolve();
+            } else {
+                console.error('yt-dlp stderr output:', stderrOutput);
+                reject(new Error(`yt-dlp exited with code ${code}. Output: ${stderrOutput}`));
+            }
         });
 
         ytdlp.on('error', (error: Error) => {
+            console.error('yt-dlp error:', error);
             sendEvent(EventType.ERROR, JSON.stringify({ message: `Error: ${error.message}` }));
             reject(error);
         });

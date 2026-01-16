@@ -8,13 +8,6 @@
 <body>
     <h1>YouTube Audio Downloader Test</h1>
 
-    <div style="margin-bottom: 20px;">
-        <label>YouTube URL:</label><br>
-        <input type="url" id="youtubeUrl" value="https://youtu.be/9bZkp7q19f0"
-            style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box;"><br>
-        <button onclick="startDownload()" style="padding: 8px 16px;">Download</button>
-    </div>
-
     <div style="margin-bottom: 10px; display: flex; gap: 10px;">
         <div style="flex: 1;">
             <label>IP/Host:</label><br>
@@ -35,9 +28,10 @@
 
     <div style="margin-bottom: 10px;">
         <label>Parameters:</label><br>
-        <input type="text" id="urlParams"
-            style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; background: #f0f0f0;">
+        <input type="text" id="urlParams" style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;">
     </div>
+
+    <button onclick="startDownload()" style="padding: 8px 16px; margin-bottom: 20px;">Download</button>
 
     <p>Status: <span id="statusBadge" style="font-weight: bold;">Ready</span></p>
 
@@ -51,20 +45,16 @@
 
         // Configuration variables
         function getUrlConfig() {
+            const paramsStr = document.getElementById('urlParams').value;
+            const url = new URLSearchParams(paramsStr);
+            const youtubeUrl = url.get('link') || '';
+
             return {
                 ip: document.getElementById('urlIp').value || window.location.hostname,
                 port: document.getElementById('urlPort').value || '3001',
                 route: document.getElementById('urlRoute').value || '/songs/upload/youtube',
-                youtubeUrl: document.getElementById('youtubeUrl').value.trim()
+                youtubeUrl: youtubeUrl.trim()
             };
-        }
-
-        function updateTargetUrl() {
-            const config = getUrlConfig();
-            document.getElementById('urlIp').value = config.ip;
-            document.getElementById('urlPort').value = config.port;
-            document.getElementById('urlRoute').value = config.route;
-            document.getElementById('urlParams').value = config.youtubeUrl ? `link=${config.youtubeUrl}` : '';
         }
 
         function buildApiUrl() {
@@ -81,10 +71,10 @@
         }
 
         function startDownload() {
-            const url = document.getElementById('youtubeUrl').value.trim();
+            const config = getUrlConfig();
 
-            if (!url) {
-                alert('Please enter a YouTube URL');
+            if (!config.youtubeUrl) {
+                alert('Please enter a YouTube URL in the Parameters field (link=<url>)');
                 return;
             }
 
@@ -98,7 +88,7 @@
 
             const apiUrl = buildApiUrl();
 
-            addLog(`[${new Date().toLocaleTimeString()}] Starting download: ${url}`);
+            addLog(`[${new Date().toLocaleTimeString()}] Starting download: ${config.youtubeUrl}`);
 
             eventSource = new EventSource(apiUrl);
 
@@ -141,18 +131,17 @@
             });
         }
 
-        document.getElementById('youtubeUrl').addEventListener('keypress', (e) => {
+        // Initialize on page load
+        document.getElementById('urlIp').value = window.location.hostname;
+        document.getElementById('urlPort').value = '3001';
+        document.getElementById('urlRoute').value = '/songs/upload/youtube';
+        document.getElementById('urlParams').value = 'link=https://youtu.be/9bZkp7q19f0';
+
+        document.getElementById('urlParams').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 startDownload();
             }
         });
-
-        // Update target URL on page load and when YouTube URL changes
-        document.getElementById('urlIp').value = window.location.hostname;
-        document.getElementById('urlPort').value = '3001';
-        document.getElementById('urlRoute').value = '/songs/upload/youtube';
-        updateTargetUrl();
-        document.getElementById('youtubeUrl').addEventListener('input', updateTargetUrl);
     </script>
 </body>
 
