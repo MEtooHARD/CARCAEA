@@ -27,6 +27,9 @@ COPY model_metadata/ ./model_metadata/
 
 COPY index.html ./
 
+# Add cookies file for yt-dlp
+COPY cookies.txt ./
+
 # Create audio temp directory
 RUN mkdir -p /app/aud_tmp
 
