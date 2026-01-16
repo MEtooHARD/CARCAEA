@@ -51,10 +51,12 @@ async function downloadYoutubeAudioWithProgress(
             '--audio-format', 'wav',
             '--postprocessor-args', 'ffmpeg:-ar 16000 -ac 1',
             '-o', path.join(AUD_TMP_DIR, `${file_name}.%(ext)s`),
-            '--cookies', '/app/cookies.txt',
+            '--extractor-args', 'youtube:skip=webpage,thumbnail',
+            '--no-warn-ip',
             '--socket-timeout', '30',
-            '--retries', '3',
-            '--fragment-retries', '3',
+            '--retries', '5',
+            '--fragment-retries', '5',
+            '--sleep-requests', '2',
             url
         ]);
 
