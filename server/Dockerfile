@@ -8,8 +8,9 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     ffmpeg \
-    && rm -rf /var/lib/apt/lists/* \
-    && python3 -m pip install --break-system-packages --upgrade yt-dlp
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --break-system-packages --upgrade yt-dlp
 
 # Copy dependency files
 COPY package*.json ./

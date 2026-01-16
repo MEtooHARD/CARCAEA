@@ -15,9 +15,27 @@
         <button onclick="startDownload()" style="padding: 8px 16px;">Download</button>
     </div>
 
+    <div style="margin-bottom: 10px; display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>IP/Host:</label><br>
+            <input type="text" id="urlIp" style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;">
+        </div>
+
+        <div style="flex: 0.2;">
+            <label>Port:</label><br>
+            <input type="text" id="urlPort" style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;">
+        </div>
+
+        <div style="flex: 1.5;">
+            <label>Route:</label><br>
+            <input type="text" id="urlRoute"
+                style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;">
+        </div>
+    </div>
+
     <div style="margin-bottom: 10px;">
-        <label>Target URL:</label><br>
-        <input type="text" id="targetUrl"
+        <label>Parameters:</label><br>
+        <input type="text" id="urlParams"
             style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; background: #f0f0f0;">
     </div>
 
@@ -31,14 +49,29 @@
     <script>
         let eventSource = null;
 
+        // Configuration variables
+        function getUrlConfig() {
+            return {
+                ip: document.getElementById('urlIp').value || window.location.hostname,
+                port: document.getElementById('urlPort').value || '3001',
+                route: document.getElementById('urlRoute').value || '/songs/upload/youtube',
+                youtubeUrl: document.getElementById('youtubeUrl').value.trim()
+            };
+        }
+
         function updateTargetUrl() {
-            const url = document.getElementById('youtubeUrl').value.trim();
-            if (url) {
-                const apiUrl = `http://3.107.5.231:3001/songs/upload/youtube?link=${url}`;
-                document.getElementById('targetUrl').value = apiUrl;
-            } else {
-                document.getElementById('targetUrl').value = '';
-            }
+            const config = getUrlConfig();
+            document.getElementById('urlIp').value = config.ip;
+            document.getElementById('urlPort').value = config.port;
+            document.getElementById('urlRoute').value = config.route;
+            document.getElementById('urlParams').value = config.youtubeUrl ? `link=${config.youtubeUrl}` : '';
+        }
+
+        function buildApiUrl() {
+            const config = getUrlConfig();
+            const protocol = window.location.protocol;
+            const encodedLink = encodeURIComponent(config.youtubeUrl);
+            return `${protocol}//${config.ip}:${config.port}${config.route}?link=${encodedLink}`;
         }
 
         function addLog(msg) {
@@ -63,8 +96,7 @@
                 eventSource.close();
             }
 
-            const encodedUrl = encodeURIComponent(url);
-            const apiUrl = `http://localhost:3001/songs/upload/youtube?link=${encodedUrl}`;
+            const apiUrl = buildApiUrl();
 
             addLog(`[${new Date().toLocaleTimeString()}] Starting download: ${url}`);
 
@@ -116,6 +148,9 @@
         });
 
         // Update target URL on page load and when YouTube URL changes
+        document.getElementById('urlIp').value = window.location.hostname;
+        document.getElementById('urlPort').value = '3001';
+        document.getElementById('urlRoute').value = '/songs/upload/youtube';
         updateTargetUrl();
         document.getElementById('youtubeUrl').addEventListener('input', updateTargetUrl);
     </script>
