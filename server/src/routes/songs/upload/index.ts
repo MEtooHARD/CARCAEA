@@ -47,19 +47,29 @@ async function downloadYoutubeAudioWithProgress(
     return new Promise((resolve, reject) => {
         sendEvent(EventType.PROGRESS, JSON.stringify({ message: '==download start==' }));
         const ytdlp = spawn('yt-dlp', [
-            '-x',                           // 僅提取音訊
+            '-x',
             '--audio-format', 'wav',
-            '--postprocessor-args', 'ffmpeg:-ar 16000 -ac 1',  // 你的需求：16kHz 單聲道
+            '--postprocessor-args', 'ffmpeg:-ar 16000 -ac 1',
             '-o', path.join(AUD_TMP_DIR, `${file_name}.%(ext)s`),
 
-            // === 新增/調整的部分 ===
-            '--impersonate', 'chrome',      // 偽裝成最新 Chrome（最常用且穩定）
-            '--extractor-args', 'youtube:player_client=web,default;po_token=auto',  // 明確要求自動處理 PO Token
-            '--sleep-requests', '2',      // 每個請求間隨機等待 2~5 秒，降低被標記風險
-            '--retries', '5',               // 重試次數
-            '--fragment-retries', '5',
-            '--no-cache-dir',               // 避免快取干擾
-            // '--verbose',                 // 開發時可開啟，正式環境可關
+            '--impersonate', 'chrome-131',          // 試最新 Chrome 版本（從你的 list 裡有 Chrome-131）
+            // 替代 target 建議（依序試，如果上面不行）：
+            // '--impersonate', 'chrome:windows-10',
+            // '--impersonate', 'edge-101:windows-10',
+            // '--impersonate', 'safari-18.0:macos-15',
+
+            '--extractor-args', 'youtube:player_client=web,mweb',  // 只用 web + mweb（最接近真人，Deno 會自動產生 PO Token）
+            // 不要加 po_token=auto 或任何手動 token，除非你手動產生
+
+            '--sleep-requests', '3-7',              // 拉長到 3~7 秒，更自然
+            '--sleep-interval', '5-15',             // 間隔睡覺
+            '--max-sleep-interval', '45',
+            '--retries', '10',
+            '--fragment-retries', '10',
+            '--no-cache-dir',
+            '--force-ipv4',                         // 有時 IPv6 更容易被擋
+            // '--verbose',                         // 先開啟看詳細 log
+
             url
         ]);
 
