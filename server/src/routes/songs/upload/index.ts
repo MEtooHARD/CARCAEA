@@ -51,7 +51,7 @@ async function downloadYoutubeAudioWithProgress(
             '--audio-format', 'wav',
             '--postprocessor-args', 'ffmpeg:-ar 16000 -ac 1',
             '-o', path.join(AUD_TMP_DIR, `${file_name}.%(ext)s`),
-            '--extractor-args', 'youtube:player_client=ios',
+            '--extractor-args', 'youtube:player_client=mweb',
             '--socket-timeout', '30',
             '--retries', '5',
             '--fragment-retries', '5',
