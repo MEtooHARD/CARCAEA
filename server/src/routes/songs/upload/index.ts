@@ -1,11 +1,15 @@
 import { Router, type Request, type Response } from "express";
-import { spawn } from "child_process";
 import { mkdir, readFile } from "fs/promises";
 import path from "path";
 import { try_catch } from "../../../types/Result";
 import { EventType, type EssentiaResponse } from "./types";
 import { db } from "../../../types/database";
 import crypto from "crypto";
+import ytdl from "ytdl-core";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 
 const router = Router();
 
@@ -37,63 +41,69 @@ function extractYoutubeId(url: string): string | null {
 }
 
 /**
- * Download YouTube audio using yt-dlp with SSE progress reporting
+ * Download YouTube audio using ytdl-core with SSE progress reporting
  */
 async function downloadYoutubeAudioWithProgress(
     url: string,
     file_name: string,
     sendEvent: (event: string, data: string) => void
 ): Promise<void> {
-    return new Promise((resolve, reject) => {
-        sendEvent(EventType.PROGRESS, JSON.stringify({ message: '==download start==' }));
-        const ytdlp = spawn('yt-dlp', [
-            '-x',
-            '--audio-format', 'wav',
-            '--postprocessor-args', 'ffmpeg:-ar 16000 -ac 1',
-            '-o', path.join(AUD_TMP_DIR, `${file_name}.%(ext)s`),
-            '--extractor-args', 'youtube:player_client=mweb',
-            '--socket-timeout', '30',
-            '--retries', '5',
-            '--fragment-retries', '5',
-            url
-        ]);
+    sendEvent(EventType.PROGRESS, JSON.stringify({ message: '==download start==' }));
 
-        let stderrOutput = '';
+    try {
+        const outputPath = path.join(AUD_TMP_DIR, `${file_name}.wav`);
+        sendEvent(EventType.PROGRESS, JSON.stringify({ message: 'Getting video info...' }));
+        
+        const info = await ytdl.getInfo(url);
+        const videoTitle = info.videoDetails.title;
+        sendEvent(EventType.PROGRESS, JSON.stringify({ message: `Video: ${videoTitle}` }));
 
-        ytdlp.stderr.on('data', (data: Buffer) => {
-            const text = data.toString();
-            stderrOutput += text;
-            const lines = text.split('\n');
+        // Find audio-only format (highest quality audio)
+        const audioFormats = info.formats.filter((format) => format.mimeType?.startsWith('audio/') && format.audioBitrate);
+        audioFormats.sort((a, b) => (b.audioBitrate || 0) - (a.audioBitrate || 0));
+        
+        if (!audioFormats.length) {
+            throw new Error('No audio formats available');
+        }
 
-            lines.forEach((line: string) => {
-                if (line.includes('Downloading') || line.includes('Extracting') || line.includes('Converting') || line.includes('ERROR') || line.includes('error')) {
-                    sendEvent(EventType.PROGRESS, JSON.stringify({ message: line.trim() }));
-                }
-            });
+        sendEvent(EventType.PROGRESS, JSON.stringify({ message: 'Downloading audio...' }));
+        
+        const tempMp4 = path.join(AUD_TMP_DIR, `${file_name}_temp.m4a`);
+        const format = audioFormats[0];
+        
+        if (!format) {
+            throw new Error('No valid audio format found');
+        }
+        
+        // Download audio stream
+        const stream = ytdl.downloadFromInfo(info, { format });
+        const writeStream = require('fs').createWriteStream(tempMp4);
+
+        let downloadedBytes = 0;
+        stream.on('data', (chunk: Buffer) => {
+            downloadedBytes += chunk.length;
+            sendEvent(EventType.PROGRESS, JSON.stringify({ message: `Downloaded: ${(downloadedBytes / 1024 / 1024).toFixed(2)}MB` }));
         });
 
-        ytdlp.stdout.on('data', (data: Buffer) => {
-            const output = data.toString().trim();
-            if (output) {
-                sendEvent(EventType.PROGRESS, JSON.stringify({ message: output }));
-            }
+        await new Promise<void>((resolve, reject) => {
+            stream.pipe(writeStream);
+            writeStream.on('finish', resolve);
+            writeStream.on('error', reject);
+            stream.on('error', reject);
         });
 
-        ytdlp.on('close', (code: number) => {
-            if (code === 0) {
-                resolve();
-            } else {
-                console.error('yt-dlp stderr output:', stderrOutput);
-                reject(new Error(`yt-dlp exited with code ${code}. Output: ${stderrOutput}`));
-            }
-        });
+        sendEvent(EventType.PROGRESS, JSON.stringify({ message: 'Converting to 16kHz mono WAV...' }));
+        
+        // Convert m4a to wav with ffmpeg
+        await execAsync(`ffmpeg -i "${tempMp4}" -acodec pcm_s16le -ar 16000 -ac 1 "${outputPath}" -y`);
 
-        ytdlp.on('error', (error: Error) => {
-            console.error('yt-dlp error:', error);
-            sendEvent(EventType.ERROR, JSON.stringify({ message: `Error: ${error.message}` }));
-            reject(error);
-        });
-    });
+        // Clean up temp file
+        require('fs').unlinkSync(tempMp4);
+        
+        sendEvent(EventType.PROGRESS, JSON.stringify({ message: 'Audio download complete' }));
+    } catch (error) {
+        throw error;
+    }
 }
 
 /**
