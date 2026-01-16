@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Aimer「Pastoral」Music Video（TVアニメ「羅小黒戦記」日本語吹替版主題歌） [jhtwOAADUtE].wav",
+  "valence": -1685.5949716704708,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.24580103158950806,
+    "std_rms_energy": 0.12181813269853592,
+    "mean_spectral_centroid": 2290.9076492871554,
+    "mean_spectral_rolloff": 4946.968041768579,
+    "mean_spectral_spread": 2449.5424898082433
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Aimer「Pastoral」Music Video（TVアニメ「羅小黒戦記」日本語吹替版主題歌） [jhtwOAADUtE].wav",
+  "arousal": 0.14815989968677362,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:47:34.0019150+08:00"
+}

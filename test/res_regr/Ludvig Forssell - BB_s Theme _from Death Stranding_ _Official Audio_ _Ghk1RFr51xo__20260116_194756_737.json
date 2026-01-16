@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Ludvig Forssell - BB's Theme (from Death Stranding) (Official Audio) [Ghk1RFr51xo].wav",
+  "valence": -1391.6504346790996,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.1720210760831833,
+    "std_rms_energy": 0.10265029966831207,
+    "mean_spectral_centroid": 1883.036823705263,
+    "mean_spectral_rolloff": 3914.406027622951,
+    "mean_spectral_spread": 2180.6414451680607
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Ludvig Forssell - BB's Theme (from Death Stranding) (Official Audio) [Ghk1RFr51xo].wav",
+  "arousal": 0.12405986001094182,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:47:56.7379459+08:00"
+}

@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "伍佰 Wu Bai&China Blue【挪威的森林 Norwegian forest】Official Music Video [gPpZJlE0Ca8].wav",
+  "valence": -1537.64253678496,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.13428284227848053,
+    "std_rms_energy": 0.04677620902657509,
+    "mean_spectral_centroid": 2059.354231939774,
+    "mean_spectral_rolloff": 4406.309864819282,
+    "mean_spectral_spread": 2366.6486412829936
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\伍佰 Wu Bai&China Blue【挪威的森林 Norwegian forest】Official Music Video [gPpZJlE0Ca8].wav",
+  "arousal": 0.09222987764825423,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:48:14.3985232+08:00"
+}

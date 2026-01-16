@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "United States of America National Anthem (Instrumental) [w5x_9KEogM8].wav",
+  "valence": -1211.0886619833425,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.09241636842489243,
+    "std_rms_energy": 0.03813016414642334,
+    "mean_spectral_centroid": 1683.2965202451383,
+    "mean_spectral_rolloff": 3393.27392578125,
+    "mean_spectral_spread": 1851.1174722726353
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\United States of America National Anthem (Instrumental) [w5x_9KEogM8].wav",
+  "arousal": 0.0794986493140459,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:12:59.0426574+08:00"
+}

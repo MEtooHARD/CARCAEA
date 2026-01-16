@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "【Official Music Video】春日影(MyGO!!!!! ver.) ⧸ MyGO!!!!!【オリジナル楽曲】 [ZsvJUh03MwI].wav",
+  "valence": -1537.2147130292863,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.23665452003479004,
+    "std_rms_energy": 0.08076245337724686,
+    "mean_spectral_centroid": 2104.4048989608286,
+    "mean_spectral_rolloff": 4403.567059304836,
+    "mean_spectral_spread": 2307.641598283306
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\【Official Music Video】春日影(MyGO!!!!! ver.) ⧸ MyGO!!!!!【オリジナル楽曲】 [ZsvJUh03MwI].wav",
+  "arousal": 0.12879791793723902,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:47:28.3751253+08:00"
+}

@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Wiz Khalifa - See You Again ft. Charlie Puth [Official Video] Furious 7 Soundtrack [RgKAFK5djSk].wav",
+  "valence": -1389.0324441509144,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.21997973322868347,
+    "std_rms_energy": 0.13880614936351776,
+    "mean_spectral_centroid": 1871.8170343489428,
+    "mean_spectral_rolloff": 3911.5096124967904,
+    "mean_spectral_spread": 2182.7161989844344
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Wiz Khalifa - See You Again ft. Charlie Puth [Official Video] Furious 7 Soundtrack [RgKAFK5djSk].wav",
+  "arousal": 0.14975687876343727,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:48:11.1613676+08:00"
+}

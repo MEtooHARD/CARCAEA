@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Serani Poji - Pipo Pipo [zExNDJ1V57o].wav",
+  "valence": -1866.5196932878068,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.22086721658706665,
+    "std_rms_energy": 0.08110544830560684,
+    "mean_spectral_centroid": 2440.5508578291233,
+    "mean_spectral_rolloff": 5615.066691979248,
+    "mean_spectral_spread": 2719.4893945172194
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Serani Poji - Pipo Pipo [zExNDJ1V57o].wav",
+  "arousal": 0.12552253670990468,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T21:14:32.4473860+08:00"
+}

@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "See Tình - Hoàng Thùy Linh「Cukak Remix」⧸ Audio Lyrics Video [tVTRY6851Ug].wav",
+  "valence": -1504.334549662001,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.22108717262744904,
+    "std_rms_energy": 0.09455621242523193,
+    "mean_spectral_centroid": 2042.4412461820957,
+    "mean_spectral_rolloff": 4254.605235441553,
+    "mean_spectral_spread": 2327.8870108336123
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\See Tình - Hoàng Thùy Linh「Cukak Remix」⧸ Audio Lyrics Video [tVTRY6851Ug].wav",
+  "arousal": 0.13126435066262881,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:48:01.9752799+08:00"
+}

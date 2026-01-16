@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Aerosmith - Dream On (Audio) [89dGC8de0CA].wav",
+  "valence": -1340.1216535526992,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.10387660562992096,
+    "std_rms_energy": 0.053164009004831314,
+    "mean_spectral_centroid": 1964.019965847725,
+    "mean_spectral_rolloff": 3766.795896408455,
+    "mean_spectral_spread": 1905.198520188152
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Aerosmith - Dream On (Audio) [89dGC8de0CA].wav",
+  "arousal": 0.0883460283651948,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:47:32.2101693+08:00"
+}

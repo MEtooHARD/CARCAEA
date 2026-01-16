@@ -36,8 +36,8 @@ services:
   extractor:
     build: ./essentia
     container_name: ${EXTRACTOR}
-    # ports:
-    #   - "5000:5000"
+    ports:
+      - "5000:5000"
 
 volumes:
   postgres_data:

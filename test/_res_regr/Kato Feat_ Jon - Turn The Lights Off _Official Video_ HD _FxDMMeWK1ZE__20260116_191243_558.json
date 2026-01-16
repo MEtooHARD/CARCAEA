@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Kato Feat. Jon - Turn The Lights Off [Official Video] HD [FxDMMeWK1ZE].wav",
+  "valence": -2112.3683372977375,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.21982212364673615,
+    "std_rms_energy": 0.11207354068756104,
+    "mean_spectral_centroid": 2845.0537181540403,
+    "mean_spectral_rolloff": 6443.897916902876,
+    "mean_spectral_spread": 2891.62388642725
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Kato Feat. Jon - Turn The Lights Off [Official Video] HD [FxDMMeWK1ZE].wav",
+  "arousal": 0.13840592568119367,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:12:43.5586292+08:00"
+}

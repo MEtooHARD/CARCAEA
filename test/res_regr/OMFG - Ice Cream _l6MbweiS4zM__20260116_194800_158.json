@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "OMFG - Ice Cream [l6MbweiS4zM].wav",
+  "valence": -2265.298296268158,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.2922874391078949,
+    "std_rms_energy": 0.14251257479190826,
+    "mean_spectral_centroid": 3422.798470683243,
+    "mean_spectral_rolloff": 6724.896516493125,
+    "mean_spectral_spread": 2775.227877534545
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\OMFG - Ice Cream [l6MbweiS4zM].wav",
+  "arousal": 0.16699260180195175,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:48:00.1585946+08:00"
+}

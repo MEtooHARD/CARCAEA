@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Joseph Haydn - Deutsche Nationalhymne [v_-wfiLIQj8].wav",
+  "valence": -1225.3159881619854,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.06752615422010422,
+    "std_rms_energy": 0.033756185322999954,
+    "mean_spectral_centroid": 1671.569187797325,
+    "mean_spectral_rolloff": 3453.6713228140884,
+    "mean_spectral_spread": 1896.2669644566056
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Joseph Haydn - Deutsche Nationalhymne [v_-wfiLIQj8].wav",
+  "arousal": 0.0722541185344259,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:47:51.9464596+08:00"
+}

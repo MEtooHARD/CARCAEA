@@ -51,25 +51,8 @@ async function downloadYoutubeAudioWithProgress(
             '--audio-format', 'wav',
             '--postprocessor-args', 'ffmpeg:-ar 16000 -ac 1',
             '-o', path.join(AUD_TMP_DIR, `${file_name}.%(ext)s`),
-
-            '--impersonate', 'chrome-131',          // 試最新 Chrome 版本（從你的 list 裡有 Chrome-131）
-            // 替代 target 建議（依序試，如果上面不行）：
-            // '--impersonate', 'chrome:windows-10',
-            // '--impersonate', 'edge-101:windows-10',
-            // '--impersonate', 'safari-18.0:macos-15',
-
-            '--extractor-args', 'youtube:player_client=web,mweb',  // 只用 web + mweb（最接近真人，Deno 會自動產生 PO Token）
-            // 不要加 po_token=auto 或任何手動 token，除非你手動產生
-
-            '--sleep-requests', '2',              // 拉長到 3~7 秒，更自然
-            '--sleep-interval', '5',             // 間隔睡覺
-            '--max-sleep-interval', '45',
-            '--retries', '10',
-            '--fragment-retries', '10',
-            '--no-cache-dir',
-            '--force-ipv4',                         // 有時 IPv6 更容易被擋
-            // '--verbose',                         // 先開啟看詳細 log
-
+            '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            '--extractor-args', 'youtube:player_client=web',
             url
         ]);
 

@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Interstellar Main Theme - Hans Zimmer [kpz8lpoLvrA].wav",
+  "valence": -566.0599890835996,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.10984215885400772,
+    "std_rms_energy": 0.06992214918136597,
+    "mean_spectral_centroid": 729.7265782100657,
+    "mean_spectral_rolloff": 1311.1523939349781,
+    "mean_spectral_spread": 1178.610224610027
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Interstellar Main Theme - Hans Zimmer [kpz8lpoLvrA].wav",
+  "arousal": 0.09673284423847994,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:47:51.5242805+08:00"
+}

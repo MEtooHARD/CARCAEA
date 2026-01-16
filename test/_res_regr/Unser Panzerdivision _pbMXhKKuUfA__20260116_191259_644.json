@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Unser Panzerdivision [pbMXhKKuUfA].wav",
+  "valence": -1433.9879780571719,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.14920881390571594,
+    "std_rms_energy": 0.04717457294464111,
+    "mean_spectral_centroid": 2038.8912686748852,
+    "mean_spectral_rolloff": 4008.0899066012785,
+    "mean_spectral_spread": 2140.01425673465
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Unser Panzerdivision [pbMXhKKuUfA].wav",
+  "arousal": 0.0956324788928032,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:12:59.6443591+08:00"
+}

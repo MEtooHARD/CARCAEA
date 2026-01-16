@@ -5,10 +5,13 @@ from typing import (Any, Awaitable, Callable, Dict, Final, List, Optional,
                     Tuple, Type)
 
 import numpy as np
+import librosa
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from Operation import BaseOperation, EmoMusicMSDMusicNN2, MSDMusicNN1, ExtractorOperation, ClassifierOperation
 from pydantic import BaseModel
+import tempfile
+import os
 
 # Separate operation tuples for extractors and classifiers
 extractors: Final[Tuple[Type[ExtractorOperation], ...]] = (
@@ -285,6 +288,147 @@ async def classify(request: ClassifyRequest) -> JSONResponse:
         raise
     except Exception as e:
         logger.error(f"[CLASSIFY] Classification failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==================== Valence-Arousal Regressor Endpoint ====================
+
+# Griffiths 2021 Linear Regression Coefficients
+AROUSAL_REGRESSORS = [
+    (0.10, 0.65),    # Mean RMS energy
+    (-0.05, 0.72),   # SD of RMS energy
+    (0.08, 0.55)     # Energy variation
+]
+
+VALENCE_REGRESSORS = [
+    (0.35, -0.68),   # Mean spectral centroid
+    (0.28, -0.45),   # Mean spectral roll-off
+    (0.30, -0.52)    # Mean spectral spread
+]
+
+
+def extract_audio_features(audio_bytes: bytes, sr: int = 22050) -> Dict[str, float]:
+    """Extract key audio features from byte stream using librosa"""
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+        f.write(audio_bytes)
+        tmp_path = f.name
+    
+    try:
+        # Load audio
+        y, sr = librosa.load(tmp_path, sr=sr, mono=True)
+        
+        # RMS-based energy features
+        rms = librosa.feature.rms(y=y)[0]
+        mean_rms = float(np.mean(rms))
+        std_rms = float(np.std(rms))
+        
+        # Spectral features
+        centroid = librosa.feature.spectral_centroid(y=y, sr=sr)[0]
+        mean_centroid = float(np.mean(centroid))
+        
+        rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)[0]
+        mean_rolloff = float(np.mean(rolloff))
+        
+        spread = librosa.feature.spectral_bandwidth(y=y, sr=sr)[0]
+        mean_spread = float(np.mean(spread))
+        
+        return {
+            'mean_rms_energy': mean_rms,
+            'std_rms_energy': std_rms,
+            'mean_spectral_centroid': mean_centroid,
+            'mean_spectral_rolloff': mean_rolloff,
+            'mean_spectral_spread': mean_spread
+        }
+    finally:
+        os.remove(tmp_path)
+
+
+def predict_valence_arousal(features: Dict[str, float]) -> tuple[float, float]:
+    """Apply linear regressions to predict valence and arousal"""
+    # Arousal predictions
+    arousal_preds = [
+        AROUSAL_REGRESSORS[0][0] + AROUSAL_REGRESSORS[0][1] * features['mean_rms_energy'],
+        AROUSAL_REGRESSORS[1][0] + AROUSAL_REGRESSORS[1][1] * features['std_rms_energy'],
+        AROUSAL_REGRESSORS[2][0] + AROUSAL_REGRESSORS[2][1] * features['std_rms_energy']
+    ]
+    final_arousal = np.mean(arousal_preds)
+    
+    # Valence predictions
+    valence_preds = [
+        VALENCE_REGRESSORS[0][0] + VALENCE_REGRESSORS[0][1] * features['mean_spectral_centroid'],
+        VALENCE_REGRESSORS[1][0] + VALENCE_REGRESSORS[1][1] * features['mean_spectral_rolloff'],
+        VALENCE_REGRESSORS[2][0] + VALENCE_REGRESSORS[2][1] * features['mean_spectral_spread']
+    ]
+    final_valence = np.mean(valence_preds)
+    
+    return float(final_valence), float(final_arousal)
+
+
+@app.post("/regress")
+async def regress(file: UploadFile = File(...)) -> JSONResponse:
+    """
+    Predict valence and arousal from audio using Griffiths 2021 linear regression model.
+    
+    Args:
+        file: Audio file (multipart/form-data)
+    
+    Returns:
+        JSON with valence, arousal, emotion quadrant, and extracted features
+    """
+    try:
+        logger.info(f"[REGRESS] Received request")
+        logger.info(f"[REGRESS] File: {file.filename if file else 'None'}")
+        
+        # Read audio file
+        contents = await file.read()
+        if not contents:
+            logger.error("[REGRESS] File is empty")
+            raise HTTPException(status_code=400, detail="Empty file")
+        
+        logger.info(f"[REGRESS] File read successfully: {file.filename}, size={len(contents)} bytes")
+        
+        # Queue processing
+        async def regress_task() -> Dict[str, Any]:
+            logger.info(f"[REGRESS_TASK] Extracting audio features...")
+            
+            # Extract features from audio bytes
+            features = extract_audio_features(contents)
+            logger.info(f"[REGRESS_TASK] Features extracted: {list(features.keys())}")
+            
+            # Predict valence and arousal
+            logger.info(f"[REGRESS_TASK] Predicting valence and arousal...")
+            valence, arousal = predict_valence_arousal(features)
+            logger.info(f"[REGRESS_TASK] Prediction complete: valence={valence:.3f}, arousal={arousal:.3f}")
+            
+            # Determine emotion quadrant
+            quadrant = ""
+            if valence > 0 and arousal > 0:
+                quadrant = "Excited/Happy"
+            elif valence < 0 and arousal > 0:
+                quadrant = "Angry/Tense"
+            elif valence < 0 and arousal < 0:
+                quadrant = "Sad/Depressed"
+            else:
+                quadrant = "Calm/Relaxed"
+            
+            return {
+                "valence": valence,
+                "arousal": arousal,
+                "emotion_quadrant": quadrant,
+                "features": features,
+                "model": "griffiths-2021"
+            }
+        
+        logger.info(f"[REGRESS] Enqueueing task...")
+        result = await enqueue_task(regress_task)
+        logger.info(f"[REGRESS] Task complete, returning result")
+        return JSONResponse(result)
+    
+    except HTTPException as he:
+        logger.error(f"[REGRESS] HTTP Exception: {he.detail}")
+        raise
+    except Exception as e:
+        logger.error(f"[REGRESS] Regression failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
