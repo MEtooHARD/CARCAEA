@@ -62,7 +62,7 @@ async function downloadYoutubeAudioWithProgress(
             // 不要加 po_token=auto 或任何手動 token，除非你手動產生
 
             '--sleep-requests', '2',              // 拉長到 3~7 秒，更自然
-            '--sleep-interval', '5-15',             // 間隔睡覺
+            '--sleep-interval', '5',             // 間隔睡覺
             '--max-sleep-interval', '45',
             '--retries', '10',
             '--fragment-retries', '10',
