@@ -1,0 +1,25 @@
+{
+  "name": "jamendo_process",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.0.9",
+    "@types/pg": "^8.16.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "chalk": "^4.1.2",
+    "kysely": "^0.28.10",
+    "pg": "^8.17.1",
+    "tsx": "^4.21.0"
+  }
+}

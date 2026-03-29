@@ -17,10 +17,12 @@ type Failure<F> = { data: null; error: F };
 
 export type Result<T, F> = Success<T> | Failure<F>;
 
-export async function try_catch<T, F = any>(promise: Promise<T>): Promise<Result<T, F>> {
+export async function try_catch<T, F = Error>(
+    promise: Promise<T>
+): Promise<Result<T, F>> {
     try {
         return { data: await promise, error: null };
     } catch (error: any) {
-        return { data: null, error: error || 'An error occurred without a specific message' };
+        return { data: null, error: error || 'An error occurred.' };
     }
 }

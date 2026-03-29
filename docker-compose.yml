@@ -14,6 +14,8 @@ services:
       interval: 8s
       timeout: 5s
       retries: 5
+    ports:
+      - "5433:5432"
 
   server:
     build: ./server
@@ -26,7 +28,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${ARCAEA_DB}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5433/${ARCAEA_DB}
       NODE_ENV: development
       AUDIO_STORAGE_PATH: ${AUDIO_STORAGE_PATH:-./storage/audio}
     volumes:
@@ -38,6 +40,13 @@ services:
     container_name: ${EXTRACTOR}
     ports:
       - "5000:5000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
 volumes:
   postgres_data:

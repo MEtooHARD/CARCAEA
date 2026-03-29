@@ -189,7 +189,7 @@ router.get('/youtube', async (req: Request, res: Response) => {
 
     if (hashCheck.error) {
         console.error('Database check error:', hashCheck.error);
-        const errorMsg = typeof hashCheck.error === 'string' ? hashCheck.error : hashCheck.error?.message || 'Failed to check database';
+        const errorMsg = hashCheck.error instanceof Error ? hashCheck.error.message : hashCheck.error || 'Failed to check database';
         sendEvent(EventType.ERROR, JSON.stringify({ message: `Error: ${errorMsg}` }));
         res.end();
         return;
@@ -217,7 +217,7 @@ router.get('/youtube', async (req: Request, res: Response) => {
 
     if (embCheck.error) {
         console.error('Embedding check error:', embCheck.error);
-        const errorMsg = typeof embCheck.error === 'string' ? embCheck.error : embCheck.error?.message || 'Failed to check embedding';
+        const errorMsg = embCheck.error instanceof Error ? embCheck.error.message : embCheck.error || 'Failed to check embedding';
         sendEvent(EventType.ERROR, JSON.stringify({ message: `Error: ${errorMsg}` }));
         res.end();
         return;
@@ -243,7 +243,7 @@ router.get('/youtube', async (req: Request, res: Response) => {
 
         if (ess_res.error) {
             console.error('Essentia extraction error:', ess_res.error);
-            const errorMsg = typeof ess_res.error === 'string' ? ess_res.error : ess_res.error?.message || 'Failed to extract audio features';
+            const errorMsg = ess_res.error instanceof Error ? ess_res.error.message : ess_res.error || 'Failed to extract audio features';
             sendEvent(EventType.ERROR, JSON.stringify({ message: `Error: ${errorMsg}` }));
             res.end();
             return;
@@ -261,7 +261,7 @@ router.get('/youtube', async (req: Request, res: Response) => {
 
         if (embInsert.error) {
             console.error('Embedding insert error:', embInsert.error);
-            const errorMsg = typeof embInsert.error === 'string' ? embInsert.error : embInsert.error?.message || 'Failed to store embedding';
+            const errorMsg = embInsert.error instanceof Error ? embInsert.error.message : embInsert.error || 'Failed to store embedding';
             sendEvent(EventType.ERROR, JSON.stringify({ message: `Error: ${errorMsg}` }));
             res.end();
             return;
@@ -276,7 +276,7 @@ router.get('/youtube', async (req: Request, res: Response) => {
 
     if (vaCheck.error) {
         console.error('VA check error:', vaCheck.error);
-        const errorMsg = typeof vaCheck.error === 'string' ? vaCheck.error : vaCheck.error?.message || 'Failed to check VA values';
+        const errorMsg = vaCheck.error instanceof Error ? vaCheck.error.message : vaCheck.error || 'Failed to check VA values';
         sendEvent(EventType.ERROR, JSON.stringify({ message: `Error: ${errorMsg}` }));
         res.end();
         return;
@@ -303,7 +303,7 @@ router.get('/youtube', async (req: Request, res: Response) => {
 
         if (classifyRes.error) {
             console.error('Classification error:', classifyRes.error);
-            const errorMsg = typeof classifyRes.error === 'string' ? classifyRes.error : classifyRes.error?.message || 'Failed to classify audio';
+            const errorMsg = classifyRes.error instanceof Error ? classifyRes.error.message : classifyRes.error || 'Failed to classify audio';
             sendEvent(EventType.ERROR, JSON.stringify({ message: `Error: ${errorMsg}` }));
             res.end();
             return;
@@ -321,7 +321,7 @@ router.get('/youtube', async (req: Request, res: Response) => {
 
         if (vaInsert.error) {
             console.error('VA insert error:', vaInsert.error);
-            const errorMsg = typeof vaInsert.error === 'string' ? vaInsert.error : vaInsert.error?.message || 'Failed to store VA values';
+            const errorMsg = vaInsert.error instanceof Error ? vaInsert.error.message : vaInsert.error || 'Failed to store VA values';
             sendEvent(EventType.ERROR, JSON.stringify({ message: `Error: ${errorMsg}` }));
             res.end();
             return;

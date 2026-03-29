@@ -4,7 +4,7 @@ import { Pool } from "pg";
 
 const dialect = new PostgresDialect({
     pool: new Pool({
-        host: process.env.DATABASE,  // 'db' is the service name in docker-compose
+        host: process.env.DATABASE,
         database: process.env.ARCAEA_DB,
         user: process.env.POSTGRES_USER,
         port: Number(process.env.DB_PORT) || 5432,

@@ -1,6 +1,7 @@
 -- ID
 CREATE TABLE IF NOT EXISTS id_sha256 (
-    id VARCHAR(64) PRIMARY KEY
+    id VARCHAR(64) PRIMARY KEY,
+    jamendo_id INT UNIQUE
 );
 
 -- Embedding table for EfficientNet on Discogs dataset
