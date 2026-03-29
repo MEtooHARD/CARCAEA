@@ -6,7 +6,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from routes import router as extract_router
-from schemas import HealthCheckResponse, ErrorResponse
+from schemas import HealthCheckResponse  # , ErrorResponse
 
 # 配置日志
 logging.basicConfig(
