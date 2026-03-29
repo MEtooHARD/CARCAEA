@@ -35,18 +35,17 @@ services:
       - ./server/src:/app/src
       - ./test:/app/test
 
+  # extractor:
+  #   build: ./essentia
+  #   container_name: ${EXTRACTOR}
+    # ports:
+    #   - "5000:5000"
+  
   extractor:
-    build: ./essentia
-    container_name: ${EXTRACTOR}
+    build: ./extractor_server
+    container_name: ${EXTRACTOR_SERVER}
     ports:
-      - "5000:5000"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+      - "3001:8000"
 
 volumes:
   postgres_data:
