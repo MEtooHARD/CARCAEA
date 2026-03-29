@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Bring Me The Horizon - Ludens (Official Video) [B9wvTuDC-H0].wav",
+  "valence": -1818.0108510254206,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.23202604055404663,
+    "std_rms_energy": 0.10070103406906128,
+    "mean_spectral_centroid": 2447.6722325929663,
+    "mean_spectral_rolloff": 5446.294108086281,
+    "mean_spectral_spread": 2576.371319758112
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Bring Me The Horizon - Ludens (Official Video) [B9wvTuDC-H0].wav",
+  "arousal": 0.13623574654261272,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:12:30.9288318+08:00"
+}

@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Bring Me The Horizon - Can You Feel My Heart [QJJYpsA5tv8].wav",
+  "valence": -1678.8331604805905,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.288434773683548,
+    "std_rms_energy": 0.09384288638830185,
+    "mean_spectral_centroid": 2364.7614736091855,
+    "mean_spectral_rolloff": 4895.200602213542,
+    "mean_spectral_spread": 2358.75270844506
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Bring Me The Horizon - Can You Feel My Heart [QJJYpsA5tv8].wav",
+  "arousal": 0.14555435620248316,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:12:29.2170281+08:00"
+}

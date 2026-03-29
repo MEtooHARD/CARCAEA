@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Mariah Carey - All I Want for Christmas Is You (Make My Wish Come True Edition) [aAkMkVFwAoo].wav",
+  "valence": -2152.8720024871627,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.15900565683841705,
+    "std_rms_energy": 0.0773204118013382,
+    "mean_spectral_centroid": 2947.2294510957345,
+    "mean_spectral_rolloff": 6587.806611216091,
+    "mean_spectral_spread": 2867.1480878252833
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Mariah Carey - All I Want for Christmas Is You (Make My Wish Come True Edition) [aAkMkVFwAoo].wav",
+  "arousal": 0.11051686664422354,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:12:47.5000565+08:00"
+}

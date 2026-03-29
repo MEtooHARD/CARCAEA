@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "空 [I9Go2E7hXMQ].wav",
+  "valence": -1825.790371782098,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.27640193700790405,
+    "std_rms_energy": 0.10430548340082169,
+    "mean_spectral_centroid": 2558.653274932368,
+    "mean_spectral_rolloff": 5347.853036725183,
+    "mean_spectral_spread": 2561.3135035883665
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\空 [I9Go2E7hXMQ].wav",
+  "arousal": 0.1473764076580604,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:13:06.6536006+08:00"
+}

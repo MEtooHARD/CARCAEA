@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Bon Jovi - It's My Life (Lyrics) [o9YyEeHSC4U].wav",
+  "valence": -1897.4137366592222,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.2507098913192749,
+    "std_rms_energy": 0.05447715148329735,
+    "mean_spectral_centroid": 2746.2630441827623,
+    "mean_spectral_rolloff": 5579.783748183139,
+    "mean_spectral_spread": 2528.4801024057215
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Bon Jovi - It's My Life (Lyrics) [o9YyEeHSC4U].wav",
+  "arousal": 0.12071580391377212,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:47:39.3381417+08:00"
+}

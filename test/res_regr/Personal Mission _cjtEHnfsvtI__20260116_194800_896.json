@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Personal Mission [cjtEHnfsvtI].wav",
+  "valence": -882.5877093016765,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.13039658963680267,
+    "std_rms_energy": 0.09929081052541733,
+    "mean_spectral_centroid": 1187.8560624478505,
+    "mean_spectral_rolloff": 2223.2847423926687,
+    "mean_spectral_spread": 1616.2939833919033
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Personal Mission [cjtEHnfsvtI].wav",
+  "arousal": 0.11361903754373391,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:48:00.8969199+08:00"
+}

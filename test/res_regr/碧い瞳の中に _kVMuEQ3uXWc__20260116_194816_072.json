@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "碧い瞳の中に [kVMuEQ3uXWc].wav",
+  "valence": -1580.8986762837649,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.2948054373264313,
+    "std_rms_energy": 0.15774813294410706,
+    "mean_spectral_centroid": 2202.404108825427,
+    "mean_spectral_rolloff": 4535.452508732576,
+    "mean_spectral_spread": 2317.3800113852785
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\碧い瞳の中に [kVMuEQ3uXWc].wav",
+  "arousal": 0.17398788770039877,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:48:16.0725629+08:00"
+}

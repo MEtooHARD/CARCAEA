@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Tokyo Drift - Teriyaki Boyz [ MUSIC VIDEO ] HD [iuJDhFRDx9M].wav",
+  "valence": -1513.552947898588,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.2727803885936737,
+    "std_rms_energy": 0.09247823059558868,
+    "mean_spectral_centroid": 2043.6245111092876,
+    "mean_spectral_rolloff": 4342.902212477854,
+    "mean_spectral_spread": 2303.1118856277185
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Tokyo Drift - Teriyaki Boyz [ MUSIC VIDEO ] HD [iuJDhFRDx9M].wav",
+  "arousal": 0.14158486848076188,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:12:58.5979224+08:00"
+}

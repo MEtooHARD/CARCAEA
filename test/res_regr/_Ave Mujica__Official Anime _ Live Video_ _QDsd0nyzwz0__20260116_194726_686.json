@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "「Ave Mujica」(Official Anime × Live Video) [QDsd0nyzwz0].wav",
+  "valence": -1549.6570878697803,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.1005924865603447,
+    "std_rms_energy": 0.04591097682714462,
+    "mean_spectral_centroid": 2220.4700310314097,
+    "mean_spectral_rolloff": 4461.804502024085,
+    "mean_spectral_spread": 2177.2492626868157
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\「Ave Mujica」(Official Anime × Live Video) [QDsd0nyzwz0].wav",
+  "arousal": 0.08456401894489925,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:47:26.6867359+08:00"
+}

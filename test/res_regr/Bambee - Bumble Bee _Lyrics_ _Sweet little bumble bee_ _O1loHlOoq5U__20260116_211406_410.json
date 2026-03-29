@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Bambee - Bumble Bee (Lyrics) ＂Sweet little bumble bee＂ [O1loHlOoq5U].wav",
+  "valence": -2340.7225171195455,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.12565669417381287,
+    "std_rms_energy": 0.04657428339123726,
+    "mean_spectral_centroid": 3344.508376920855,
+    "mean_spectral_rolloff": 7108.344641397166,
+    "mean_spectral_spread": 2980.916858507172
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Bambee - Bumble Bee (Lyrics) ＂Sweet little bumble bee＂ [O1loHlOoq5U].wav",
+  "arousal": 0.09027539703994991,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T21:14:06.4107242+08:00"
+}

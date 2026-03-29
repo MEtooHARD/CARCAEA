@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "ATLXS - PASSO BEM SOLTO (SLOWED) [KgayxOF4Y7E].wav",
+  "valence": -1525.541093824705,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.20880615711212158,
+    "std_rms_energy": 0.07603412866592407,
+    "mean_spectral_centroid": 2097.1528977540543,
+    "mean_spectral_rolloff": 4363.964165039062,
+    "mean_spectral_spread": 2284.04891679573
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\ATLXS - PASSO BEM SOLTO (SLOWED) [KgayxOF4Y7E].wav",
+  "arousal": 0.1207624485095342,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T21:14:05.0887026+08:00"
+}

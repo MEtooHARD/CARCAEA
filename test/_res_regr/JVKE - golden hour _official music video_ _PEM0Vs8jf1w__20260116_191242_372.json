@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "JVKE - golden hour (official music video) [PEM0Vs8jf1w].wav",
+  "valence": -994.0963154147779,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.24866826832294464,
+    "std_rms_energy": 0.14624850451946259,
+    "mean_spectral_centroid": 1417.0172076500849,
+    "mean_spectral_rolloff": 2648.007722449133,
+    "mean_spectral_spread": 1592.3918652695502
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\JVKE - golden hour (official music video) [PEM0Vs8jf1w].wav",
+  "arousal": 0.15912332504987717,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:12:42.3729532+08:00"
+}

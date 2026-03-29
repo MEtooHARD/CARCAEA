@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "C418  - Sweden - Minecraft Volume Alpha [aBkTkxKDduc].wav",
+  "valence": -405.81893772066627,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.027613764628767967,
+    "std_rms_energy": 0.028461450710892677,
+    "mean_spectral_centroid": 595.5701117990722,
+    "mean_spectral_rolloff": 910.6374675495653,
+    "mean_spectral_spread": 776.1774552717794
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\C418  - Sweden - Minecraft Volume Alpha [aBkTkxKDduc].wav",
+  "arousal": 0.06136499647051096,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T21:14:13.9447495+08:00"
+}

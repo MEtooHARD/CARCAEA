@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Spalexma - We Are Charlie Kirk (Lyrics) [I0RC2Z-V1I0].wav",
+  "valence": -1587.227402772256,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.13317492604255676,
+    "std_rms_energy": 0.06423590332269669,
+    "mean_spectral_centroid": 2146.327890336351,
+    "mean_spectral_rolloff": 4610.281945438521,
+    "mean_spectral_spread": 2362.4660912321447
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Spalexma - We Are Charlie Kirk (Lyrics) [I0RC2Z-V1I0].wav",
+  "arousal": 0.09938109971582891,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:48:05.0089205+08:00"
+}

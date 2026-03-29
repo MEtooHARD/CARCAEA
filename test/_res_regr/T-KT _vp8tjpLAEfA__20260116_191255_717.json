@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "T-KT [vp8tjpLAEfA].wav",
+  "valence": -932.418564572698,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.08293971419334412,
+    "std_rms_energy": 0.08171682804822922,
+    "mean_spectral_centroid": 1286.5515039377847,
+    "mean_spectral_rolloff": 2492.3995204478,
+    "mean_spectral_spread": 1541.828628536327
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\T-KT [vp8tjpLAEfA].wav",
+  "arousal": 0.09589706194897492,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:12:55.7177854+08:00"
+}

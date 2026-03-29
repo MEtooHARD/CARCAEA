@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Ash flame [jBZ_lAKJIso].wav",
+  "valence": -1702.330791947985,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.34367576241493225,
+    "std_rms_energy": 0.1266922801733017,
+    "mean_spectral_centroid": 2326.756765643842,
+    "mean_spectral_rolloff": 4997.850313616298,
+    "mean_spectral_spread": 2455.182950151555
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Ash flame [jBZ_lAKJIso].wav",
+  "arousal": 0.17142948046326636,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:12:24.3400639+08:00"
+}

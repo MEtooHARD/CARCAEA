@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "【公式】Ｈ△Ｇ（ハグ）「カラフル」 あの頃の傷は今も消えない。それでも僕らは強く生きたいと願うんだ。 [D342YCjzvS8].wav",
+  "valence": -1660.6914986989411,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.315212607383728,
+    "std_rms_energy": 0.08640071004629135,
+    "mean_spectral_centroid": 2387.4782734127575,
+    "mean_spectral_rolloff": 4775.885590864586,
+    "mean_spectral_spread": 2327.6360659366997
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\【公式】Ｈ△Ｇ（ハグ）「カラフル」 あの頃の傷は今も消えない。それでも僕らは強く生きたいと願うんだ。 [D342YCjzvS8].wav",
+  "arousal": 0.14820569885273774,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T21:13:59.6628097+08:00"
+}

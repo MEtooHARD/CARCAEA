@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "The Red Army Is the Strongest [x4NaW3LAo4s].wav",
+  "valence": -1462.5913754572787,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.19942526519298553,
+    "std_rms_energy": 0.08080160617828369,
+    "mean_spectral_centroid": 2099.828809361275,
+    "mean_spectral_rolloff": 4005.0875179439045,
+    "mean_spectral_spread": 2227.9445248681
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\The Red Army Is the Strongest [x4NaW3LAo4s].wav",
+  "arousal": 0.12074815407395363,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T21:14:36.4115319+08:00"
+}

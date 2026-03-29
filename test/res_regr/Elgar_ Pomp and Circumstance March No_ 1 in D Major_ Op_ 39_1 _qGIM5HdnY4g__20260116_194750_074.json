@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Elgar： Pomp and Circumstance March No. 1 in D Major, Op. 39⧸1 [qGIM5HdnY4g].wav",
+  "valence": -1074.4716282233446,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.07680133730173111,
+    "std_rms_energy": 0.04335547611117363,
+    "mean_spectral_centroid": 1501.1843460841012,
+    "mean_spectral_rolloff": 2907.930565575638,
+    "mean_spectral_spread": 1721.0976438919379
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Elgar： Pomp and Circumstance March No. 1 in D Major, Op. 39⧸1 [qGIM5HdnY4g].wav",
+  "arousal": 0.07832744130243859,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:47:50.0746288+08:00"
+}

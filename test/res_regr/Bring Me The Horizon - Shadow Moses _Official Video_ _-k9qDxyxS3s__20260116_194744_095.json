@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Bring Me The Horizon - Shadow Moses (Official Video) [-k9qDxyxS3s].wav",
+  "valence": -1648.594205496924,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.2618538439273834,
+    "std_rms_energy": 0.11171267181634903,
+    "mean_spectral_centroid": 2388.1042523388455,
+    "mean_spectral_rolloff": 4769.871026308578,
+    "mean_spectral_spread": 2262.2303135798015
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Bring Me The Horizon - Shadow Moses (Official Video) [-k9qDxyxS3s].wav",
+  "arousal": 0.14736003058652083,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:47:44.0956707+08:00"
+}

@@ -1,0 +1,17 @@
+{
+  "model": "griffiths-2021",
+  "audio_file": "Death Stranding OST： Almost Nothing (Chapter 8 Version) [bf7putI4Tw8].wav",
+  "valence": -834.8877477833988,
+  "api_url": "http://localhost:5000",
+  "features": {
+    "mean_rms_energy": 0.09408298879861832,
+    "std_rms_energy": 0.04179704561829567,
+    "mean_spectral_centroid": 1068.632307460001,
+    "mean_spectral_rolloff": 2217.964009647991,
+    "mean_spectral_spread": 1501.614365261153
+  },
+  "audio_path": "D:\\Code\\ARCAEA_BACKEND\\test\\_aud\\Death Stranding OST： Almost Nothing (Chapter 8 Version) [bf7putI4Tw8].wav",
+  "arousal": 0.0814120635514458,
+  "emotion_quadrant": "Angry/Tense",
+  "timestamp": "2026-01-16T19:12:35.9334060+08:00"
+}

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import search from './search/index';
 import { mid_logger } from '../../util/middleware';
+import upload from './upload/index';
 
 const router = Router();
 
@@ -12,5 +13,11 @@ router.use(
     mid_logger('/search'),
     search
 );
+
+router.use(
+    '/upload',
+    mid_logger('/upload'),
+    upload
+)
 
 export default router;

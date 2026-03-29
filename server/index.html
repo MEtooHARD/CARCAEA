@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>YouTube Audio Downloader</title>
+</head>
+
+<body>
+    <h1>YouTube Audio Downloader Test</h1>
+
+    <div style="margin-bottom: 10px; display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>IP/Host:</label><br>
+            <input type="text" id="urlIp" style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;">
+        </div>
+
+        <div style="flex: 0.2;">
+            <label>Port:</label><br>
+            <input type="text" id="urlPort" style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;">
+        </div>
+
+        <div style="flex: 1.5;">
+            <label>Route:</label><br>
+            <input type="text" id="urlRoute"
+                style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;">
+        </div>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label>Parameters:</label><br>
+        <input type="text" id="urlParams" style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;">
+    </div>
+
+    <button onclick="startDownload()" style="padding: 8px 16px; margin-bottom: 20px;">Download</button>
+
+    <p>Status: <span id="statusBadge" style="font-weight: bold;">Ready</span></p>
+
+    <div id="log"
+        style="border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; background: #f9f9f9;">
+        Waiting for download...
+    </div>
+
+    <script>
+        let eventSource = null;
+
+        // Configuration variables
+        function getUrlConfig() {
+            const paramsStr = document.getElementById('urlParams').value;
+            const url = new URLSearchParams(paramsStr);
+            const youtubeUrl = url.get('link') || '';
+
+            return {
+                ip: document.getElementById('urlIp').value || window.location.hostname,
+                port: document.getElementById('urlPort').value || '3001',
+                route: document.getElementById('urlRoute').value || '/songs/upload/youtube',
+                youtubeUrl: youtubeUrl.trim()
+            };
+        }
+
+        function buildApiUrl() {
+            const config = getUrlConfig();
+            const protocol = window.location.protocol;
+            const encodedLink = encodeURIComponent(config.youtubeUrl);
+            return `${protocol}//${config.ip}:${config.port}${config.route}?link=${encodedLink}`;
+        }
+
+        function addLog(msg) {
+            const log = document.getElementById('log');
+            log.textContent += '\n' + msg;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function startDownload() {
+            const config = getUrlConfig();
+
+            if (!config.youtubeUrl) {
+                alert('Please enter a YouTube URL in the Parameters field (link=<url>)');
+                return;
+            }
+
+            const log = document.getElementById('log');
+            log.textContent = '';
+            document.getElementById('statusBadge').textContent = 'Downloading...';
+
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            const apiUrl = buildApiUrl();
+
+            addLog(`[${new Date().toLocaleTimeString()}] Starting download: ${config.youtubeUrl}`);
+
+            eventSource = new EventSource(apiUrl);
+
+            eventSource.addEventListener('start', (event) => {
+                const data = JSON.parse(event.data);
+                addLog(`[${new Date().toLocaleTimeString()}] 🚀 ${data.message}`);
+            });
+
+            eventSource.addEventListener('progress', (event) => {
+                const data = JSON.parse(event.data);
+                addLog(`[${new Date().toLocaleTimeString()}] ⏳ ${data.message}`);
+            });
+
+            eventSource.addEventListener('complete', (event) => {
+                const data = JSON.parse(event.data);
+                addLog(`[${new Date().toLocaleTimeString()}] ✅ ${data.message}`);
+                document.getElementById('statusBadge').textContent = 'Complete!';
+                eventSource.close();
+            });
+
+            eventSource.addEventListener('error', (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    addLog(`[${new Date().toLocaleTimeString()}] ❌ ${data.message}`);
+                } catch {
+                    // If not SSE event, try to read response body
+                    if (event.data) {
+                        try {
+                            const jsonData = JSON.parse(event.data);
+                            addLog(`[${new Date().toLocaleTimeString()}] ❌ ${JSON.stringify(jsonData, null, 2)}`);
+                        } catch {
+                            addLog(`[${new Date().toLocaleTimeString()}] ❌ ${event.data}`);
+                        }
+                    } else {
+                        addLog(`[${new Date().toLocaleTimeString()}] ❌ Connection error`);
+                    }
+                }
+                document.getElementById('statusBadge').textContent = 'Error';
+                eventSource.close();
+            });
+        }
+
+        // Initialize on page load
+        document.getElementById('urlIp').value = window.location.hostname;
+        document.getElementById('urlPort').value = '3001';
+        document.getElementById('urlRoute').value = '/songs/upload/youtube';
+        document.getElementById('urlParams').value = 'link=https://youtu.be/9bZkp7q19f0';
+
+        document.getElementById('urlParams').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                startDownload();
+            }
+        });
+    </script>
+</body>
+
+</html>
