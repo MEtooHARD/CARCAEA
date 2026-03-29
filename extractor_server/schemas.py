@@ -1,7 +1,7 @@
 """数据模型"""
 
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 
 
 # ==================== 响应模型 ====================

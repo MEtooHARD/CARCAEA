@@ -5,6 +5,7 @@
 import numpy as np
 import librosa
 from scipy import signal
+from typing import cast, Tuple
 from .base import AudioExtractor
 from config import LOUDNESS_HOP_LENGTH, LOUDNESS_FILTER_ORDER, LOUDNESS_CUTOFF_FREQ
 
@@ -63,13 +64,14 @@ class LoudnessExtractor(AudioExtractor):
             normalized_cutoff = min(LOUDNESS_CUTOFF_FREQ / nyquist_freq, 0.99)
             
             if normalized_cutoff > 0:
-                b, a = signal.butter(
+                b_coeff, a_coeff = cast(Tuple[np.ndarray, np.ndarray], signal.butter(
                     LOUDNESS_FILTER_ORDER,
                     normalized_cutoff,
-                    btype='low'
-                )
-                envelope = signal.filtfilt(b, a, rms)
-                envelope_db = signal.filtfilt(b, a, loudness_db)
+                    btype='low',
+                    output='ba'
+                ))
+                envelope = signal.filtfilt(b_coeff, a_coeff, rms)
+                envelope_db = signal.filtfilt(b_coeff, a_coeff, loudness_db)
             else:
                 envelope = rms
                 envelope_db = loudness_db

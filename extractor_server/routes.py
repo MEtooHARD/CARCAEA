@@ -14,8 +14,7 @@ from schemas import (
     ModeResponse,
     TempoResponse,
     LoudnessResponse,
-    F0EnvelopeResponse,
-    ErrorResponse
+    F0EnvelopeResponse
 )
 import logging
 

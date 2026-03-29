@@ -35,7 +35,7 @@ class AudioProcessor:
 
         try:
             # 使用 soundfile 读取
-            audio_float, file_sr = sf.read(io.BytesIO(audio_bytes), dtype=np.float32)
+            audio_float, file_sr = sf.read(io.BytesIO(audio_bytes), dtype="float32")
 
             # 如果指定了采样率，则进行重采样
             if sr is not None and sr != file_sr:

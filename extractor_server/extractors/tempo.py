@@ -5,7 +5,7 @@
 import numpy as np
 import librosa
 from .base import AudioExtractor
-from config import TEMPO_HOP_LENGTH, TEMPO_START_BPM, TEMPO_STOP_BPM
+from config import TEMPO_HOP_LENGTH, TEMPO_START_BPM
 
 
 class TempoExtractor(AudioExtractor):
@@ -49,14 +49,7 @@ class TempoExtractor(AudioExtractor):
 
         # 计算 Tempogram
         tempogram = librosa.feature.tempogram(
-            onset_env=onset_strength,
-            sr=sr,
-            hop_length=TEMPO_HOP_LENGTH
-        )
-
-        # 提取频率轴对应的 BPM 值
-        bpm_axis = librosa.frames_to_time(
-            np.arange(tempogram.shape[0]),
+            y=audio_data,
             sr=sr,
             hop_length=TEMPO_HOP_LENGTH
         )

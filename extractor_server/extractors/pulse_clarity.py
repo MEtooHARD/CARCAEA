@@ -5,7 +5,7 @@
 import numpy as np
 import librosa
 from .base import AudioExtractor
-from config import PULSE_CLARITY_HOP_LENGTH, PULSE_CLARITY_FMIN, PULSE_CLARITY_FMAX
+from config import PULSE_CLARITY_HOP_LENGTH
 
 
 class PulseClarityExtractor(AudioExtractor):
@@ -45,9 +45,8 @@ class PulseClarityExtractor(AudioExtractor):
 
         # 计算 Tempogram（通过 CQT 分解）
         # Tempogram 衡量不同时间尺度上的周期性
-        onset_env = onset_strength
         tempogram = librosa.feature.tempogram(
-            onset_env=onset_env,
+            y=audio_data,
             sr=sr,
             hop_length=PULSE_CLARITY_HOP_LENGTH
         )
