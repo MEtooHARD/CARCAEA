@@ -3,8 +3,10 @@ FastAPI 主应用
 """
 
 import logging
-from fastapi import FastAPI
+from typing import Any, Callable, Awaitable
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+# from starlette.middleware.base import BaseHTTPMiddleware
 from routes import router as extract_router
 from schemas import HealthCheckResponse  # , ErrorResponse
 
@@ -29,7 +31,7 @@ app = FastAPI(
 
 
 @app.middleware("http")
-async def logging_middleware(request, call_next):
+async def logging_middleware(request: Request, call_next: Callable[[Request], Awaitable[Any]]) -> Any:
     """请求/响应日志中间件"""
     logger.info(f"{request.method} {request.url.path}")
     response = await call_next(request)
@@ -46,7 +48,7 @@ app.include_router(extract_router)
 # ==================== 健康检查 ====================
 
 @app.get("/health", response_model=HealthCheckResponse, tags=["health"])
-async def health_check():
+async def health_check() -> HealthCheckResponse:
     """
     健康检查端点
 
@@ -56,7 +58,7 @@ async def health_check():
 
 
 @app.get("/", tags=["root"])
-async def root():
+async def root() -> dict[str, Any]:
     """根路径，返回 API 信息"""
     return {
         "service": "Audio Feature Extractor Service",
@@ -76,7 +78,7 @@ async def root():
 # ==================== 异常处理 ====================
 
 @app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """全局异常处理器"""
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=exc)
     return JSONResponse(

@@ -2,6 +2,7 @@
 节奏速度 (Tempo / BPM) 提取器
 """
 
+from typing import Any, Dict
 import numpy as np
 import librosa
 from .base import AudioExtractor
@@ -14,7 +15,7 @@ class TempoExtractor(AudioExtractor):
     通过分析起音曲线中的周期性估算 BPM
     """
 
-    async def extract(self, audio_data: np.ndarray, sr: int) -> dict:
+    async def extract(self, audio_data: np.ndarray, sr: int) -> Dict[str, Any]:
         """
         提取节奏速度 (BPM)
 

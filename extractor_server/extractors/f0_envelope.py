@@ -2,6 +2,7 @@
 基频包络线 (F0 Envelope / Pitch Contour) 提取器
 """
 
+from typing import Any, Dict, Optional
 import numpy as np
 import librosa
 from .base import AudioExtractor
@@ -14,7 +15,7 @@ class F0EnvelopeExtractor(AudioExtractor):
     使用 PYIN 或 YIN 算法估计基频的时间轨迹
     """
 
-    async def extract(self, audio_data: np.ndarray, sr: int) -> dict:
+    async def extract(self, audio_data: np.ndarray, sr: int) -> Dict[str, Any]:
         """
         提取基频包络线
 
@@ -65,7 +66,7 @@ class F0EnvelopeExtractor(AudioExtractor):
 
         # 处理 NaN 值（无声部分）
         voiced_mask = ~np.isnan(f0)
-        
+
         if isinstance(voiced_times, np.ndarray):
             voiced_list = voiced_times.tolist()
         else:

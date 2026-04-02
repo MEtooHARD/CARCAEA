@@ -2,6 +2,7 @@
 脉动清晰度 (Pulse Clarity) 提取器
 """
 
+from typing import Any, Dict
 import numpy as np
 import librosa
 from .base import AudioExtractor
@@ -14,7 +15,7 @@ class PulseClarityExtractor(AudioExtractor):
     通过分析起音检测曲线计算脉动规律的显著程度
     """
 
-    async def extract(self, audio_data: np.ndarray, sr: int) -> dict:
+    async def extract(self, audio_data: np.ndarray, sr: int) -> Dict[str, Any]:
         """
         提取脉动清晰度
 
@@ -30,8 +31,8 @@ class PulseClarityExtractor(AudioExtractor):
 
         # 计算起音强度
         onset_strength = librosa.onset.onset_strength(
-            y=audio_data, 
-            sr=sr, 
+            y=audio_data,
+            sr=sr,
             hop_length=PULSE_CLARITY_HOP_LENGTH
         )
 
@@ -54,8 +55,9 @@ class PulseClarityExtractor(AudioExtractor):
         # 脉动清晰度 = 最强周期性的相对强度
         # 取 tempogram 在每个时间帧的最大值，然后计算其均值和标准差
         max_tempogram_per_frame = np.max(tempogram, axis=0)
-        pulse_clarity = float(np.std(max_tempogram_per_frame) / (np.mean(max_tempogram_per_frame) + 1e-7))
-        
+        pulse_clarity = float(
+            np.std(max_tempogram_per_frame) / (np.mean(max_tempogram_per_frame) + 1e-7))
+
         # 归一化到 [0, 1]
         pulse_clarity = np.clip(pulse_clarity, 0, 1)
 

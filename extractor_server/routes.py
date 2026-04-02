@@ -3,6 +3,7 @@
 """
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
+from typing import Union
 from utils import AudioProcessor
 from extractors.pulse_clarity import PulseClarityExtractor
 from extractors.mode import ModeExtractor
@@ -32,7 +33,7 @@ f0_envelope_extractor = F0EnvelopeExtractor()
 
 
 @router.post("/pulse-clarity", response_model=PulseClarityResponse)
-async def extract_pulse_clarity(file: UploadFile = File(...)):
+async def extract_pulse_clarity(file: UploadFile = File(...)) -> PulseClarityResponse:
     """
     提取脉动清晰度 (Pulse Clarity)
 
@@ -54,7 +55,7 @@ async def extract_pulse_clarity(file: UploadFile = File(...)):
 
 
 @router.post("/mode", response_model=ModeResponse)
-async def extract_mode(file: UploadFile = File(...)):
+async def extract_mode(file: UploadFile = File(...)) -> ModeResponse:
     """
     提取调式 (Mode: 大调/小调)
 
@@ -76,7 +77,7 @@ async def extract_mode(file: UploadFile = File(...)):
 
 
 @router.post("/tempo", response_model=TempoResponse)
-async def extract_tempo(file: UploadFile = File(...)):
+async def extract_tempo(file: UploadFile = File(...)) -> TempoResponse:
     """
     提取节奏速度 (Tempo / BPM)
 
@@ -98,7 +99,7 @@ async def extract_tempo(file: UploadFile = File(...)):
 
 
 @router.post("/loudness", response_model=LoudnessResponse)
-async def extract_loudness(file: UploadFile = File(...)):
+async def extract_loudness(file: UploadFile = File(...)) -> LoudnessResponse:
     """
     提取响度与音乐包络线 (Loudness / Music Envelope)
 
@@ -120,7 +121,7 @@ async def extract_loudness(file: UploadFile = File(...)):
 
 
 @router.post("/f0-envelope", response_model=F0EnvelopeResponse)
-async def extract_f0_envelope(file: UploadFile = File(...)):
+async def extract_f0_envelope(file: UploadFile = File(...)) -> F0EnvelopeResponse:
     """
     提取基频包络线 (F0 Envelope / Pitch Contour)
 

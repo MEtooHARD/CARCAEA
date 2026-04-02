@@ -5,7 +5,7 @@
 import numpy as np
 import librosa
 from scipy import signal
-from typing import cast, Tuple
+from typing import cast, Tuple, Any, Dict
 from .base import AudioExtractor
 from config import LOUDNESS_HOP_LENGTH, LOUDNESS_FILTER_ORDER, LOUDNESS_CUTOFF_FREQ
 
@@ -16,7 +16,7 @@ class LoudnessExtractor(AudioExtractor):
     通过计算 RMS 能量并应用低通滤波来获取平滑的音量包络线
     """
 
-    async def extract(self, audio_data: np.ndarray, sr: int) -> dict:
+    async def extract(self, audio_data: np.ndarray, sr: int) -> Dict[str, Any]:
         """
         提取响度与音乐包络线
 
@@ -55,14 +55,14 @@ class LoudnessExtractor(AudioExtractor):
         # 低通滤波以获得平滑的包络线
         # 设计 Butterworth 低通滤波器
         nyquist_freq = sr / (2 * LOUDNESS_HOP_LENGTH)  # 时间域中的奈奎斯特频率
-        
+
         if nyquist_freq == 0:
             envelope = rms
             envelope_db = loudness_db
         else:
             # 归一化截止频率 (0 < wn < 1)
             normalized_cutoff = min(LOUDNESS_CUTOFF_FREQ / nyquist_freq, 0.99)
-            
+
             if normalized_cutoff > 0:
                 b_coeff, a_coeff = cast(Tuple[np.ndarray, np.ndarray], signal.butter(
                     LOUDNESS_FILTER_ORDER,

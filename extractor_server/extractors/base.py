@@ -3,6 +3,7 @@
 """
 
 from abc import ABC, abstractmethod
+from typing import Any, Dict
 import numpy as np
 
 
@@ -10,7 +11,7 @@ class AudioExtractor(ABC):
     """所有特征提取器的基类"""
 
     @abstractmethod
-    async def extract(self, audio_data: np.ndarray, sr: int) -> dict:
+    async def extract(self, audio_data: np.ndarray, sr: int) -> Dict[str, Any]:
         """
         从音频数据中提取特征
 
@@ -30,4 +31,5 @@ class AudioExtractor(ABC):
         if len(audio_data) == 0:
             raise ValueError("Audio data is empty")
         if audio_data.ndim != 1:
-            raise ValueError(f"Expected 1D audio array, got {audio_data.ndim}D")
+            raise ValueError(
+                f"Expected 1D audio array, got {audio_data.ndim}D")

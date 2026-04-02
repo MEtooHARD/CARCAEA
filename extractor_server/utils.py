@@ -3,6 +3,7 @@
 """
 
 import io
+from typing import Tuple
 import numpy as np
 import librosa
 import soundfile as sf
@@ -16,7 +17,7 @@ class AudioProcessor:
     async def load_audio_from_bytes(
         audio_bytes: bytes,
         sr: int = DEFAULT_SAMPLE_RATE
-    ) -> tuple[np.ndarray, int]:
+    ) -> Tuple[np.ndarray, int]:
         """
         从字节数据加载音频
 
@@ -31,15 +32,18 @@ class AudioProcessor:
             raise ValueError("Audio file is empty")
 
         if len(audio_bytes) > MAX_UPLOAD_SIZE:
-            raise ValueError(f"Audio file size exceeds {MAX_UPLOAD_SIZE / 1024 / 1024:.1f}MB limit")
+            raise ValueError(
+                f"Audio file size exceeds {MAX_UPLOAD_SIZE / 1024 / 1024:.1f}MB limit")
 
         try:
             # 使用 soundfile 读取
-            audio_float, file_sr = sf.read(io.BytesIO(audio_bytes), dtype="float32")
+            audio_float, file_sr = sf.read(
+                io.BytesIO(audio_bytes), dtype="float32")
 
             # 如果指定了采样率，则进行重采样
             if sr is not None and sr != file_sr:
-                audio_float = librosa.resample(audio_float, orig_sr=file_sr, target_sr=sr)
+                audio_float = librosa.resample(
+                    audio_float, orig_sr=file_sr, target_sr=sr)
                 file_sr = sr
 
             # 转换为单声道
