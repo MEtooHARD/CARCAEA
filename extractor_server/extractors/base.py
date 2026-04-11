@@ -5,13 +5,14 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 import numpy as np
+from numpy.typing import NDArray
 
 
 class AudioExtractor(ABC):
     """所有特征提取器的基类"""
 
     @abstractmethod
-    async def extract(self, audio_data: np.ndarray, sr: int) -> Dict[str, Any]:
+    async def extract(self, audio_data: NDArray[np.float32], sr: int) -> Dict[str, Any]:
         """
         从音频数据中提取特征
 
@@ -24,7 +25,7 @@ class AudioExtractor(ABC):
         """
         pass
 
-    def _validate_audio(self, audio_data: np.ndarray) -> None:
+    def _validate_audio(self, audio_data: NDArray[np.float32]) -> None:
         """验证音频数据"""
         if not isinstance(audio_data, np.ndarray):
             raise ValueError(f"Expected numpy array, got {type(audio_data)}")

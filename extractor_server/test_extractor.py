@@ -4,7 +4,7 @@
 用于测试各个特征提取端点
 """
 
-from typing import Dict, Optional
+from typing import Dict
 import requests
 import sys
 from pathlib import Path
@@ -87,7 +87,7 @@ def test_feature_extraction(feature_name: str, audio_file_path: str) -> bool:
         return False
 
 
-def main() -> None:
+def main() -> int:
     """主测试函数"""
     print("=" * 60)
     print("Audio Feature Extractor Service - 快速测试")
@@ -118,10 +118,10 @@ def main() -> None:
     print(f"\n使用测试音频: {audio_file}")
 
     # 测试所有端点
-    results = {}
+    results: Dict[str, bool] = {}
     for feature_name in ENDPOINTS.keys():
         results[feature_name] = test_feature_extraction(
-            feature_name, audio_file)
+            feature_name, str(audio_file))
 
     # 汇总结果
     print("\n" + "=" * 60)
@@ -154,7 +154,7 @@ if __name__ == "__main__":
             print("\n❌ 服务未运行")
             sys.exit(1)
 
-        results = {}
+        results: Dict[str, bool] = {}
         for feature_name in ENDPOINTS.keys():
             results[feature_name] = test_feature_extraction(
                 feature_name, audio_file)

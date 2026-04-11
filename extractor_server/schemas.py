@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 
-# ==================== 响应模型 ====================
+# ==================== 基础响应模型 ====================
 
 class HealthCheckResponse(BaseModel):
     """健康检查响应"""
@@ -17,77 +17,57 @@ class ErrorResponse(BaseModel):
     details: Optional[str] = None
 
 
-# ==================== 脉动清晰度 ====================
+# ==================== 医疗级 HRV 预测 ====================
 
-class PulseClarityResponse(BaseModel):
-    """脉动清晰度响应"""
-    pulse_clarity: float  # 0-1
-    confidence: float  # 0-1
-    onset_strength: List[float]
-    onset_times: List[float]
-    max_tempogram: List[float]
-    tempogram_times: List[float]
-
-
-# ==================== 调式 ====================
-
-class ModeResponse(BaseModel):
-    """调式响应"""
-    mode: float  # 0-1, 0=小调, 1=大调
-    mode_label: str  # "major" 或 "minor"
-    confidence: float
-    major_strength: float
-    minor_strength: float
-    chroma_mean: List[float]  # 12-dim
-    chroma: List[List[float]]
-    times: List[float]
-
-
-# ==================== 节奏速度 ====================
-
-class TempoResponse(BaseModel):
-    """节奏速度响应"""
-    bpm: float
-    confidence: float
-    beat_times: List[float]
-    beat_count: int
-    onset_strength: List[float]
-    onset_times: List[float]
-    max_tempogram: List[float]
-    tempogram_times: List[float]
-
-
-# ==================== 响度 ====================
-
-class LoudnessResponse(BaseModel):
-    """响度与包络线响应"""
-    loudness_rms: List[float]
-    loudness_db: List[float]
-    loudness_envelope: List[float]
-    loudness_envelope_db: List[float]
-    mean_loudness_db: float
-    peak_loudness_db: float
-    min_loudness_db: float
+class GlobalRiskFeatures(BaseModel):
+    """全局风险指标"""
+    mode: str  # "Major" 或 "Minor"
+    mode_score: float  # 0-1
+    pulse_clarity: float  # 脉动清晰度 (Pulse Clarity) 0-1
+    tempo_category: str  # "Slow", "Moderate", "Fast"
+    tempo_bpm: float
+    tempo_score: float
     dynamic_range_db: float
-    times: List[float]
+    dynamic_range_normalized: float  # 0-1
+    mean_loudness_db: float
+    mean_f0_hz: float
+    f0_range_hz: float
 
 
-# ==================== 基频包络线 ====================
+class ThumbnailPredictionFeatures(BaseModel):
+    """缩图预测特征"""
+    mode_mean: float  # 0-1
+    pulse_clarity_mean: float  # 0-1
+    tempo_mean_bpm: float
+    music_envelope_mean: float
+    music_envelope_std: float
+    f0_envelope_mean_hz: float
+    loudness_envelope_mean: float
+    loudness_stability: float  # 0-1
 
-class F0Range(BaseModel):
-    """F0 范围"""
-    min: float
-    max: float
+
+class ValidationArrays(BaseModel):
+    """即时验证数组 (4Hz)"""
+    music_envelope_4hz: List[float]  # 120 点 for 30 秒
+    f0_envelope_4hz: List[float]
+    loudness_envelope_4hz: List[float]
+    sampling_rate_hz: float  # 4.0
+    array_length: int
 
 
-class F0EnvelopeResponse(BaseModel):
-    """基频包络线响应"""
-    f0_values: List[Optional[float]]  # None 表示无声部分
-    f0_confidence: List[float]
-    f0_voiced: List[int]  # 0 或 1
-    times: List[float]
-    mean_f0: float
-    f0_range: F0Range
-    voiced_count: int
-    total_frames: int
-    voicing_ratio: float
+class ThumbnailSegmentationInfo(BaseModel):
+    """缩图分割信息"""
+    method: str  # "SSM-based (Bartsch & Wakefield 2005)"
+    start_time_seconds: float
+    end_time_seconds: float
+    duration_seconds: float
+    start_frame: int
+    end_frame: int
+
+
+class MedicalGradeHRVOutput(BaseModel):
+    """医疗级 HRV 预测完整输出"""
+    phase_1_global_preprocessing: dict
+    phase_2_global_features: dict
+    phase_2_5_thumbnail_segmentation: ThumbnailSegmentationInfo
+    phase_3_4_medical_grade_output: dict

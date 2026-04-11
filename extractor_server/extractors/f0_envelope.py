@@ -2,8 +2,9 @@
 基频包络线 (F0 Envelope / Pitch Contour) 提取器
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 import numpy as np
+from numpy.typing import NDArray
 import librosa
 from .base import AudioExtractor
 from config import F0_FMIN, F0_FMAX, F0_HOP_LENGTH
@@ -15,7 +16,7 @@ class F0EnvelopeExtractor(AudioExtractor):
     使用 PYIN 或 YIN 算法估计基频的时间轨迹
     """
 
-    async def extract(self, audio_data: np.ndarray, sr: int) -> Dict[str, Any]:
+    async def extract(self, audio_data: NDArray[np.float32], sr: int) -> Dict[str, Any]:
         """
         提取基频包络线
 
@@ -67,8 +68,33 @@ class F0EnvelopeExtractor(AudioExtractor):
         # 处理 NaN 值（无声部分）
         voiced_mask = ~np.isnan(f0)
 
+        # ============================================================
+        # 🎯 FIX: 底限截斷假象 - 強制排除無效音高
+        # ============================================================
+        # 1. 使用 voiced_flag 篩選無效發聲區段
+        # 2. 強制過濾 <= 80.5 Hz 的底限殘留值
+
+        # 如果使用 PYIN，voiced_times 會是布林陣列（有聲 vs 無聲）
         if isinstance(voiced_times, np.ndarray):
-            voiced_list = voiced_times.tolist()
+            # voiced_times 是布林或整數陣列，用它來更新 voiced_mask
+            pyin_voiced_mask = voiced_times.astype(bool)
+            voiced_mask = voiced_mask & pyin_voiced_mask
+
+        # 強制過濾底限殘留：將所有 <= 80.5 Hz 的值標記為無聲
+        # 這消除了演算法下限（fmin=80Hz）的舍入誤差
+        fmin_threshold = 80.5
+        below_fmin = (f0 <= fmin_threshold) & voiced_mask
+        voiced_mask[below_fmin] = False
+
+        print(f"[F0Envelope] 🔍 底限篩選統計：")
+        print(f"  總幀數: {len(f0)}")
+        print(
+            f"  PYIN 判定有聲: {np.sum(pyin_voiced_mask if isinstance(voiced_times, np.ndarray) else voiced_mask)}")
+        print(f"  低於 {fmin_threshold} Hz: {np.sum(below_fmin)}")
+        print(f"  最終有聲幀: {np.sum(voiced_mask)}")
+
+        if isinstance(voiced_times, np.ndarray):
+            voiced_list = voiced_mask.astype(int).tolist()
         else:
             voiced_list = voiced_mask.astype(int).tolist()
 
@@ -98,13 +124,14 @@ class F0EnvelopeExtractor(AudioExtractor):
             hop_length=F0_HOP_LENGTH
         ).tolist()
 
-        # F0 值转换为列表（NaN 值保留）
+        # F0 值转换为列表（无声部分设为 None）
+        # 已通过 voiced_mask 进行了完整过滤（包括 PYIN 判定和底限剔除）
         f0_list = []
-        for val in f0:
-            if np.isnan(val):
-                f0_list.append(None)
-            else:
+        for i, val in enumerate(f0):
+            if voiced_mask[i] and not np.isnan(val):
                 f0_list.append(float(val))
+            else:
+                f0_list.append(None)
 
         return {
             "f0_values": f0_list,

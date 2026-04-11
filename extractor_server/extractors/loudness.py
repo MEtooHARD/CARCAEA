@@ -3,8 +3,10 @@
 """
 
 import numpy as np
+from numpy.typing import NDArray
 import librosa
 from scipy import signal
+from scipy import stats
 from typing import cast, Tuple, Any, Dict
 from .base import AudioExtractor
 from config import LOUDNESS_HOP_LENGTH, LOUDNESS_FILTER_ORDER, LOUDNESS_CUTOFF_FREQ
@@ -16,7 +18,7 @@ class LoudnessExtractor(AudioExtractor):
     通过计算 RMS 能量并应用低通滤波来获取平滑的音量包络线
     """
 
-    async def extract(self, audio_data: np.ndarray, sr: int) -> Dict[str, Any]:
+    async def extract(self, audio_data: NDArray[np.float32], sr: int) -> Dict[str, Any]:
         """
         提取响度与音乐包络线
 
@@ -80,6 +82,8 @@ class LoudnessExtractor(AudioExtractor):
         mean_loudness_db = float(np.mean(loudness_db))
         peak_loudness_db = float(np.max(loudness_db))
         min_loudness_db = float(np.min(loudness_db))
+        mode_loudness_db = float(stats.mode(
+            loudness_db, keepdims=True).mode[0])
 
         # 时间轴
         times = librosa.frames_to_time(
@@ -94,6 +98,7 @@ class LoudnessExtractor(AudioExtractor):
             "loudness_envelope": envelope.tolist(),
             "loudness_envelope_db": envelope_db.tolist(),
             "mean_loudness_db": mean_loudness_db,
+            "mode_loudness_db": mode_loudness_db,
             "peak_loudness_db": peak_loudness_db,
             "min_loudness_db": min_loudness_db,
             "dynamic_range_db": peak_loudness_db - min_loudness_db,
