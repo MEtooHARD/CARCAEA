@@ -1,0 +1,132 @@
+import type { SmoothnessMetrics } from "../types/extract_complete_response";
+
+// 使用者的生理狀態
+export interface HRVState {
+    hr: number;
+    rmssd: number;
+    lfhf: number;
+}
+
+// 包含靜態預測值與平順度特徵的歌曲結構 (從資料庫撈出)
+export interface SongCandidate {
+    song_id: string;
+    features: number[];        // [Tempo, Loudness, F0_Var, PC, Pitch]
+    predDelta: number[];       // 預先算好的 [-1.0 ~ 1.0] 預測推動力
+    smoothness: {
+        head: SmoothnessMetrics;
+        tail: SmoothnessMetrics;
+    };
+    playCount: number;         // 該使用者近期播放次數
+}
+
+export class MusicRecommendationService {
+
+    /**
+     * 歌單生成端點主程式
+     * @param currentUserState 穿戴裝置傳來的當下 HRV
+     * @param targetState 使用者選擇的目標 HRV (如：深度放鬆)
+     * @param userModel 使用者的基準線(Offset)與敏感度(Scale)模型
+     * @param playlistLength 預期歌單長度 (預設 5)
+     */
+    public generateTherapeuticPlaylist(
+        currentUserState: HRVState,
+        targetState: HRVState,
+        userModel: UserModel,
+        playlistLength: number = 5
+    ): SongCandidate[] {
+
+        const playlist: SongCandidate[] = [];
+
+        // 複製一份狀態，用於在迴圈中進行「沙盤推演 (Simulation)」
+        let simulatedState = { ...currentUserState };
+        let previousSong: SongCandidate | null = null;
+
+        for (let step = 0; step < playlistLength; step++) {
+
+            // Step 1: 結合使用者模型，計算當下需要的正規化推動力 [-1.0, 1.0]
+            // 若使用者極度不敏感，此處內部會執行 Clipping 飽和截斷
+            let targetDelta = this.calculatePersonalizedDelta(simulatedState, targetState, userModel);
+
+            // 若差距已經極小 (達成目標)，可提早結束或給予維持現狀的平穩音樂
+            if (this.isTargetAchieved(targetDelta)) {
+                targetDelta = ; // 需求轉為維持
+            }
+
+            // Step 2: 從資料庫進行一階初篩 (向量距離快篩)
+            // 這裡可以實作您提到的「共振機制 (Iso-principle 強硬介入)」
+            let candidates = this.fetchCandidatesFromDB(targetDelta);
+
+            if (step === 0 && this.isExtremeStress(currentUserState)) {
+                // 若為第一首歌且處於極度高壓，強制覆寫候選名單，尋找高能量、節奏對齊的歌
+                candidates = this.fetchEntrainmentAnchors(currentUserState.hr);
+            }
+
+            // Step 3: 二階精細排序 (Re-ranking)
+            let bestSong: SongCandidate | null = null;
+            let highestScore = -Infinity;
+
+            for (const song of candidates) {
+                // A. 基礎匹配分數 (歐氏距離與餘弦相似度)
+                let baseScore = this.calculateBaseScore(targetDelta, song.predDelta);
+
+                // B. 邊際遞減懲罰 (Familiarity & Adaptation Penalty)
+                let simToPrev = previousSong ? this.cosineSimilarity(previousSong.features, song.features) : 0;
+                let decayPenalty = this.calculateDiminishingPenalty(song.playCount, simToPrev);
+
+                // C. 首尾平滑度懲罰 (Smoothness Penalty)
+                let smoothnessScore = 1.0;
+                if (previousSong) {
+                    smoothnessScore = this.calculateSmoothnessScore(previousSong.smoothness.tail, song.smoothness.head);
+                }
+
+                // 計算綜合總分
+                let finalScore = baseScore * decayPenalty * smoothnessScore;
+
+                if (finalScore > highestScore) {
+                    highestScore = finalScore;
+                    bestSong = song;
+                }
+            }
+
+            // Step 4: 加入歌單，並推進模擬狀態
+            if (bestSong) {
+                playlist.push(bestSong);
+
+                // 【關鍵】狀態推進：將這首歌的「預測推動力」反向透過 User Model 
+                // 轉換為真實的 HRV 數值變化，加到 simulatedState 上
+                simulatedState = this.simulateNextState(simulatedState, bestSong.predDelta, userModel);
+
+                previousSong = bestSong;
+
+                // 將此歌從下一輪的候選名單中暫時排除或增加 playCount 確保不重複
+                this.markSongAsPlayedInSession(bestSong.song_id);
+            }
+        }
+
+        return playlist;
+    }
+
+    // --- 以下為輔助函式示意 ---
+
+    private calculateSmoothnessScore(prevTail: SmoothnessMetrics, nextHead: SmoothnessMetrics): number {
+        // 套用我們之前討論的即時正規化與指數衰減公式
+        const maxDbDiff = 20.0;
+        const maxHzDiff = 400.0;
+
+        const deltaLoudness = Math.min(Math.abs(prevTail.loudness_mean - nextHead.loudness_mean) / maxDbDiff, 1.0);
+        const deltaF0 = Math.min(Math.abs(prevTail.f0_mean - nextHead.f0_mean) / maxHzDiff, 1.0);
+        const deltaMusic = Math.abs(prevTail.music_mean - nextHead.music_mean);
+
+        const distance = (0.45 * deltaLoudness) + (0.35 * deltaF0) + (0.20 * deltaMusic);
+        return Math.exp(-2.5 * distance);
+    }
+
+    private simulateNextState(currentState: HRVState, appliedDelta: number[], userModel: UserModel): HRVState {
+        // 依據使用者的 scale/offset，將 [-1.0, 1.0] 的 appliedDelta 還原成實際的 bpm 或 ms 變化
+        return {
+            hr: currentState.hr + (appliedDelta * userModel.hr_scale),
+            rmssd: currentState.rmssd + (appliedDelta * userModel.rmssd_scale),
+            lfhf: currentState.lfhf + (appliedDelta * userModel.lfhf_scale)
+        };
+    }
+}

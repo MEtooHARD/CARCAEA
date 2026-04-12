@@ -2,6 +2,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import express from 'express';
 import routes from './routes';
+import { mid_logger } from './util/middleware';
 
 // const pg_pwd = process.env.POSTGRES_PASSWORD;
 // const pg_user = process.env.POSTGRES_USER;
@@ -17,7 +18,7 @@ app.get('/', (req, res) => {
     res.send('You\'re at the wrong place, dumbass.');
 })
 
-app.use('/', routes);
+app.use('/', mid_logger('==='), routes);
 
 /**
  * @swagger

@@ -4,35 +4,97 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type Json = ColumnType<JsonValue, string, string>;
+
+export type JsonArray = JsonValue[];
+
+export type JsonObject = {
+  [K in string]?: JsonValue;
+};
+
+export type JsonPrimitive = boolean | null | number | string;
+
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
+export type Mode = "major" | "minor";
+
+export type Platform = "jamendo";
+
+export type TempoCategory = "fast" | "moderate" | "slow";
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-export interface EmbEffnetDiscogs400 {
-  id: string;
-  embedding: number[];
-  created_at: Generated<Timestamp>;
+export interface FullTrackFeature {
+  f0_envelope: number[];
+  music_envelope: number[];
+  loudness_envelope: number[];
+  timestamp: Generated<Timestamp>;
 }
 
-export interface EmbMsdMusicnn {
+export interface Track {
   id: string;
-  embedding: number[];
-  created_at: Generated<Timestamp>;
+  name: string;
+  duration_s: number;
+  global_confidence: number;
+  thumbnail_start: number;
+  thumbnail_end: number;
+  thumbnail_duration: number;
 }
 
-export interface IdSha256 {
-  id: string;
-  jamendo_id: number | null;
+export interface TrackGlobalRisks {
+  track_id: string;
+  mode: Mode;
+  mode_score: number;
+  pulse_clarity: number;
+  tempo_category: TempoCategory;
+  tempo_bpm: number;
+  dynamic_range_db: number;
+  mean_loudness_db: number;
+  mean_f0_hz: number;
+  f0_range_hz: number;
 }
 
-export interface VaEmomusicMsdMusicnn {
-  id: string;
-  valence: number;
+export interface TrackPlatform {
+  track_id: string;
+  platform: Platform;
+  platform_id: string;
+}
+
+export interface TrackPrediction {
+  track_id: string;
   arousal: number;
-  created_at: Generated<Timestamp>;
+  relaxation: number;
+  timestamp: Generated<Timestamp>;
+}
+
+export interface TrackPredictionsMeta {
+  track_id: string;
+  mode_mean: number;
+  pulse_clarity_mean: number;
+  tempo_mean_bpm: number;
+  music_envelope_mean: number;
+  music_envelope_std: number;
+  f0_envelope_mean_hz: number;
+  loudness_envelope_mean: number;
+  loudness_stability: number;
+  smoothness: Json;
+}
+
+export interface TrackValidationArrays {
+  track_id: string;
+  sampling_rate_hz: number;
+  array_length: number;
+  music_envelope_4hz: number[];
+  f0_envelope_hz_4hz: number[];
+  loudness_envelope_4hz: number[];
 }
 
 export interface DB {
-  emb_effnet_discogs400: EmbEffnetDiscogs400;
-  emb_msd_musicnn: EmbMsdMusicnn;
-  id_sha256: IdSha256;
-  va_emomusic_msd_musicnn: VaEmomusicMsdMusicnn;
+  full_track_feature: FullTrackFeature;
+  track: Track;
+  track_global_risks: TrackGlobalRisks;
+  track_platform: TrackPlatform;
+  track_prediction: TrackPrediction;
+  track_predictions_meta: TrackPredictionsMeta;
+  track_validation_arrays: TrackValidationArrays;
 }

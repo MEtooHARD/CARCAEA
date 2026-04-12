@@ -206,8 +206,11 @@ class MasterFeatureExtractor:
         # ============================================
         print(
             f"[Phase 3] Resampling envelopes to 4Hz and aggregating thumbnail statistics...")
-        # 初始化重採樣器
-        resampler = Resampler(thumbnail_duration_actual)
+
+        # 計算完整曲子的時長
+        full_duration = librosa.get_duration(y=audio_mono, sr=sr)
+        print(
+            f"[Phase 3] Full song duration: {full_duration:.2f}s")
 
         # 提取 timeline 數據用於聚合
         # 注意：max_tempogram 是強度值（0-1），不是 BPM，所以不應該用它計算 tempo_mean_bpm
@@ -219,8 +222,8 @@ class MasterFeatureExtractor:
 
         mode_timeline = np.array(mode_result.get(
             "major_strength_timeline", []), dtype=np.float32)
-        mode_times = np.linspace(0, librosa.get_duration(
-            y=audio_mono, sr=sr), len(mode_timeline), dtype=np.float32)
+        mode_times = np.linspace(0, full_duration,
+                                 len(mode_timeline), dtype=np.float32)
 
         pulse_clarity_timeline = np.array(pulse_clarity_result.get(
             "pulse_clarity_timeline", []), dtype=np.float32)
@@ -244,6 +247,49 @@ class MasterFeatureExtractor:
                                f0_timeline)  # 將 None 轉換為 0
         f0_times = np.array(f0_result.get("times", []), dtype=np.float32)
 
+        # ===== 為完整曲子重採樣到 4Hz =====
+        print(f"[Phase 3] Resampling full song (3 envelopes to 4Hz)...")
+        resampler_full = Resampler(full_duration)
+        music_full_4hz, f0_full_4hz, loudness_full_4hz = resampler_full.resample_three_envelopes(
+            music_envelope_timeline, loudness_times,
+            f0_timeline, f0_times,
+            loudness_timeline, loudness_times,
+        )
+        print(
+            f"[Phase 3] ✓ Full song resampled: {len(music_full_4hz)} samples @ 4Hz")
+
+        # ===== 計算完整曲子前後 15 秒的平均值 =====
+        # 4Hz 意味著每秒 4 個樣本，所以 15 秒 = 60 個樣本
+        samples_per_15sec = int(15 * 4)
+
+        # 頭部：前 15 秒
+        head_end_idx = min(samples_per_15sec, len(music_full_4hz))
+        head_music_arr = music_full_4hz[:head_end_idx]
+        head_f0_arr = f0_full_4hz[:head_end_idx]
+        head_loudness_arr = loudness_full_4hz[:head_end_idx]
+
+        head_music_mean = float(np.mean(head_music_arr))
+        head_f0_mean = float(np.mean(head_f0_arr[head_f0_arr > 0])) if np.any(
+            head_f0_arr > 0) else 0.0
+        head_loudness_mean = float(np.mean(head_loudness_arr))
+
+        # 尾部：後 15 秒
+        tail_start_idx = max(0, len(music_full_4hz) - samples_per_15sec)
+        tail_music_arr = music_full_4hz[tail_start_idx:]
+        tail_f0_arr = f0_full_4hz[tail_start_idx:]
+        tail_loudness_arr = loudness_full_4hz[tail_start_idx:]
+
+        tail_music_mean = float(np.mean(tail_music_arr))
+        tail_f0_mean = float(np.mean(tail_f0_arr[tail_f0_arr > 0])) if np.any(
+            tail_f0_arr > 0) else 0.0
+        tail_loudness_mean = float(np.mean(tail_loudness_arr))
+
+        print(f"[Phase 3] ✓ Smoothness metrics computed")
+        print(
+            f"  - Head (first 15s): music={head_music_mean:.4f}, f0={head_f0_mean:.1f}Hz, loudness={head_loudness_mean:.2f}dB")
+        print(
+            f"  - Tail (last 15s): music={tail_music_mean:.4f}, f0={tail_f0_mean:.1f}Hz, loudness={tail_loudness_mean:.2f}dB")
+
         # ===== 調整時間軸到縮圖相對時間（0 開始） =====
         # 使用辅助函数裁剪并转换时间轴
         music_envelope_thumb, music_times_thumb = self._crop_and_normalize_timeline(
@@ -254,19 +300,20 @@ class MasterFeatureExtractor:
             f0_timeline, f0_times, thumb_start_time, thumb_end_time)
 
         # 重採樣三條包絡線到 4Hz（使用縮圖範圍的相對時間）
-        print(f"[Phase 3] Resampling 3 envelopes: music, F0, loudness...")
-        music_resampled, f0_resampled, loudness_resampled = resampler.resample_three_envelopes(
+        print(f"[Phase 3] Resampling thumbnail (3 envelopes to 4Hz)...")
+        resampler_thumb = Resampler(thumbnail_duration_actual)
+        music_resampled, f0_resampled, loudness_resampled = resampler_thumb.resample_three_envelopes(
             music_envelope_thumb, music_times_thumb,          # 第 1 個：音乐包络线（线性 RMS）
             f0_timeline_thumb, f0_times_thumb,                # 第 2 個：F0 包络线
             loudness_timeline_thumb, loudness_times_thumb,    # 第 3 個：响度包络线（dB）
         )
         print(f"[Phase 3] ✓ Resampling complete")
         print(
-            f"  - Music envelope: {len(music_resampled)} samples @ 4Hz | Mean: {np.mean(music_resampled):.4f}")
+            f"  - Thumbnail music envelope: {len(music_resampled)} samples @ 4Hz | Mean: {np.mean(music_resampled):.4f}")
         print(
-            f"  - F0 envelope: {len(f0_resampled)} samples @ 4Hz | Mean: {np.mean(f0_resampled[f0_resampled > 0]):.1f}Hz (excluding silence)")
+            f"  - Thumbnail F0 envelope: {len(f0_resampled)} samples @ 4Hz | Mean: {np.mean(f0_resampled[f0_resampled > 0]):.1f}Hz (excluding silence)")
         print(
-            f"  - Loudness envelope: {len(loudness_resampled)} samples @ 4Hz | Mean: {np.mean(loudness_resampled):.2f}dB")
+            f"  - Thumbnail loudness envelope: {len(loudness_resampled)} samples @ 4Hz | Mean: {np.mean(loudness_resampled):.2f}dB")
 
         # ============================================
         # Phase 4: 生成醫療級 JSON
@@ -310,10 +357,29 @@ class MasterFeatureExtractor:
         )
 
         # ============================================
-        # 組裝最終回應 (精簡版 v2.0)
+        # 組裝最終回應 (版本 v3.0 - 包含完整曲子 envelope)
         # ============================================
-        # 只返回關鍵標量值 + 4Hz 驗證陣列
-        # 所有中間時間線（Phase 2）僅保留在記憶體中，不匯出
+        # 建立 smoothness 物件
+        smoothness_features = {
+            "head": {
+                "f0_mean": head_f0_mean,
+                "music_mean": head_music_mean,
+                "loudness_mean": head_loudness_mean,
+            },
+            "tail": {
+                "f0_mean": tail_f0_mean,
+                "music_mean": tail_music_mean,
+                "loudness_mean": tail_loudness_mean,
+            }
+        }
+
+        # 建立 full_features 物件
+        full_features = {
+            "f0_envelope_4hz": f0_full_4hz.tolist(),
+            "music_envelope_4hz": music_full_4hz.tolist(),
+            "loudness_envelope_4hz": loudness_full_4hz.tolist(),
+        }
+
         print(f"[Phase 4] ✓ Aggregation complete")
         print(f"[Pipeline] ✓ Extraction completed successfully\n")
 
@@ -327,4 +393,6 @@ class MasterFeatureExtractor:
             "global_risk_features": hrv_features["global_risk_features"],
             "thumbnail_prediction_features": hrv_features["thumbnail_prediction_features"],
             "thumbnail_validation_arrays": hrv_features["validation_arrays"],
+            "full_features": full_features,
+            "smoothness": smoothness_features,
         }

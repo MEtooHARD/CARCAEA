@@ -28,13 +28,14 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5433/${ARCAEA_DB}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${ARCAEA_DB}
       NODE_ENV: development
       AUDIO_STORAGE_PATH: ${AUDIO_STORAGE_PATH:-./storage/audio}
     volumes:
       - ./server/src:/app/src
       - ./test:/app/test
 
+  # (deprecated)
   # extractor:
   #   build: ./essentia
   #   container_name: ${EXTRACTOR}
@@ -45,7 +46,7 @@ services:
     build: ./extractor_server
     container_name: ${EXTRACTOR_SERVER}
     ports:
-      - "3001:8000"
+      - "3002:8000"
 
 volumes:
   postgres_data:

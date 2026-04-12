@@ -122,6 +122,8 @@ async def extract_complete(
             "global_risk_features": result.get("global_risk_features", {}),
             "thumbnail_prediction_features": result.get("thumbnail_prediction_features", {}),
             "thumbnail_validation_arrays": result.get("thumbnail_validation_arrays", {}),
+            "full_features": result.get("full_features", {}),
+            "smoothness": result.get("smoothness", {}),
         }
 
         # 清理 JSON 中的無效浮點值

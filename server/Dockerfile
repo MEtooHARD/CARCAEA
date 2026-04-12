@@ -29,7 +29,7 @@ RUN npm install
 COPY src ./src
 
 # Copy model metadata
-COPY model_metadata/ ./model_metadata/
+# COPY model_metadata/ ./model_metadata/
 
 COPY index.html ./
 
