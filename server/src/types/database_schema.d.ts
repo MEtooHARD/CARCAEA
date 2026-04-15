@@ -54,6 +54,14 @@ export interface TrackGlobalRisks {
   f0_range_hz: number;
 }
 
+export interface TrackHrvEffPredict {
+  track_id: string;
+  hr: number;
+  emssd: number;
+  lfhf: number;
+  timestamp: Generated<Timestamp>;
+}
+
 export interface TrackPlatform {
   track_id: string;
   platform: Platform;
@@ -93,6 +101,7 @@ export interface DB {
   full_track_feature: FullTrackFeature;
   track: Track;
   track_global_risks: TrackGlobalRisks;
+  track_hrv_eff_predict: TrackHrvEffPredict;
   track_platform: TrackPlatform;
   track_prediction: TrackPrediction;
   track_predictions_meta: TrackPredictionsMeta;

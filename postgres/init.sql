@@ -55,17 +55,25 @@ CREATE TABLE IF NOT EXISTS track_validation_arrays (
     loudness_envelope_4hz FLOAT8 [] NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS track_prediction (
-    track_id VARCHAR(64) PRIMARY KEY REFERENCES track(id) ON DELETE CASCADE,
-    arousal FLOAT8 NOT NULL,
-    relaxation FLOAT8 NOT NULL,
-    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
+-- (deprecated)
+-- CREATE TABLE IF NOT EXISTS track_prediction (
+--     track_id VARCHAR(64) PRIMARY KEY REFERENCES track(id) ON DELETE CASCADE,
+--     arousal FLOAT8 NOT NULL,
+--     relaxation FLOAT8 NOT NULL,
+--     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- );
 CREATE TABLE IF NOT EXISTS full_track_feature (
     f0_envelope FLOAT8 [] NOT NULL,
     music_envelope FLOAT8 [] NOT NULL,
     loudness_envelope FLOAT8 [] NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS track_hrv_eff_predict (
+    track_id VARCHAR(64) PRIMARY KEY REFERENCES track(id) ON DELETE CASCADE,
+    hr FLOAT8 NOT NULL,
+    emssd FLOAT8 NOT NULL,
+    lfhf FLOAT8 NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
