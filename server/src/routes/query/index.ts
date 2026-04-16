@@ -1,9 +1,13 @@
 import { Router, type Request, type Response } from 'express';
+import { HRV, HRVRange } from '../../core/Constants';
+import { Retrieval } from '../../core/retrieval';
+import type { SmoothnessMetrics } from '../../types/extract_complete_response';
 import { conditional_list } from '../../util/conditional';
+import { num } from '../../util/numeric';
 
 const router = Router();
 
-router.get('/', (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
     try {
 
         /**
@@ -33,7 +37,12 @@ router.get('/', (req: Request, res: Response) => {
         // Step 1: 參數解析與基礎資料準備 (Initialization & Preprocessing)
         // ============================================================================
         // 1.1 解析來自 HTTP Request 的 payload。
-        const { hr, rmssd, lfhf } = req.query;
+        const {
+            hr,
+            rmssd,
+            lfhf,
+            current_song_id
+        } = req.query;
 
         if (!hr || !rmssd || !lfhf)
             return res.status(400).json({
@@ -41,18 +50,48 @@ router.get('/', (req: Request, res: Response) => {
                 error: `Missing required query parameters: ${conditional_list([[!hr, 'hr'], [!rmssd, 'rmssd'], [!lfhf, 'lfhf']])}`
             });
 
-        // if ()
+        const HR = Number(hr);
+        const RMSSD = Number(rmssd);
+        const LFHF = Number(lfhf);
+
+        // check type and range
+        if (!num(HR, HRVRange[HRV.HR].min, HRVRange[HRV.HR].max))
+            return res.status(400).json({
+                success: false,
+                error: `Invalid 'hr' value. Expected a number between ${HRVRange[HRV.HR].min} and ${HRVRange[HRV.HR].max}.`
+            });
+        if (!num(RMSSD, HRVRange[HRV.RMSSD].min, HRVRange[HRV.RMSSD].max))
+            return res.status(400).json({
+                success: false,
+                error: `Invalid 'rmssd' value. Expected a number between ${HRVRange[HRV.RMSSD].min} and ${HRVRange[HRV.RMSSD].max}.`
+            });
+        if (!num(LFHF, HRVRange[HRV.LFHF].min, HRVRange[HRV.LFHF].max))
+            return res.status(400).json({
+                success: false,
+                error: `Invalid 'lfhf' value. Expected a number between ${HRVRange[HRV.LFHF].min} and ${HRVRange[HRV.LFHF].max}.`
+            });
 
         // 1.2 連線至資料庫，透過 `current_song_id` 撈取目前正在播放歌曲的詳細特徵。
-
         // 1.3 特別提取該歌曲尾奏 (tail) 的 SmoothnessMetrics (包含 f0_mean, music_mean, 
         //     loudness_mean)，暫存於記憶體，準備用於後續的過場平順度比對。
+
+        let prev_tail: SmoothnessMetrics | null = null;
+        if (current_song_id && typeof current_song_id === 'string') {
+            const res = await Retrieval.smoothness(current_song_id);
+
+            if (res.data) prev_tail = res.data.tail;
+            else console.warn(`Could not retrieve smoothness metrics for current_song_id: ${current_song_id}. Proceeding without smoothness evaluation.`);
+        }
+
         // ============================================================================
         // Step 2: 資料庫層級的一階初篩與排除 (Database Exclusion & Bounding Box)
         // ============================================================================
         // 2.1 歷史排除 (Exclusion Filter): 
         //     在資料庫查詢條件中加入 `song_id NOT IN(recent_played_ids)`，
         //     從底層直接杜絕重複推薦近期已播放過的歌曲。
+
+        /* todo */
+
         // 2.2 檢索模式分流 (Mode Routing):
         //     - 若 search_mode 為 "DELTA_HRV" (常規生理微調模式):
         //       利用 target_vector 在 3D 生理空間 (HR, RMSSD, LF/HF) 中設定容許半徑 r，
@@ -60,6 +99,25 @@ router.get('/', (req: Request, res: Response) => {
         //     - 若 search_mode 為 "ABSOLUTE_FEATURE" (Iso-principle 強硬介入模式):
         //       當前端偵測到使用者狀態嚴重偏離靜息基準線，此模式會直接針對目標聲學特徵 
         //       (如 Tempo, Loudness, Pulse Clarity) 進行範圍篩選。
+
+        const res_lv1_candidates = await Retrieval.tracks_by_hrv([HR, RMSSD, LFHF]);
+
+        if (res_lv1_candidates.error) {
+            console.error("Database retrieval error on searching by HRV:", res_lv1_candidates.error);
+            return res.status(500).json({
+                success: false,
+                error: "Internal Server Error during database retrieval."
+            });
+        }
+
+        if (!res_lv1_candidates.data || res_lv1_candidates.data.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: "No candidate tracks found matching the HRV criteria."
+            });
+        }
+
+        const lv1_candidates = res_lv1_candidates.data;
 
         // ============================================================================
         // Step 3: 二階精細向量距離與方向計分 (Vector Distance & Cosine Similarity)
@@ -107,7 +165,7 @@ router.get('/', (req: Request, res: Response) => {
 
     } catch (error) {
         // 捕捉預期外的伺服器錯誤
-        console.error("Error in HRV to Emotion mapping route:", error);
+        console.error("Internal Server Error:", error);
         return res.status(500).json({
             success: false,
             error: "Internal Server Error during HRV processing."

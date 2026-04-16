@@ -1,4 +1,4 @@
-import { clamp } from "../util/math";
+import { clamp } from "../util/numeric";
 
 /**
  * 定義單一時間點的心率變異度 (HRV) 生理狀態

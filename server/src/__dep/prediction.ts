@@ -1,4 +1,4 @@
-import { clamp } from "../util/math";
+import { clamp } from "../util/numeric";
 
 /**
  * 定義傳入的音樂聲學特徵介面

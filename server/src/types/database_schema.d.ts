@@ -31,6 +31,12 @@ export interface FullTrackFeature {
   timestamp: Generated<Timestamp>;
 }
 
+export interface ListenHistory {
+  track_id: string;
+  user_id: string;
+  timestamp: Generated<Timestamp>;
+}
+
 export interface Track {
   id: string;
   name: string;
@@ -57,7 +63,7 @@ export interface TrackGlobalRisks {
 export interface TrackHrvEffPredict {
   track_id: string;
   hr: number;
-  emssd: number;
+  rmssd: number;
   lfhf: number;
   timestamp: Generated<Timestamp>;
 }
@@ -66,13 +72,6 @@ export interface TrackPlatform {
   track_id: string;
   platform: Platform;
   platform_id: string;
-}
-
-export interface TrackPrediction {
-  track_id: string;
-  arousal: number;
-  relaxation: number;
-  timestamp: Generated<Timestamp>;
 }
 
 export interface TrackPredictionsMeta {
@@ -97,13 +96,18 @@ export interface TrackValidationArrays {
   loudness_envelope_4hz: number[];
 }
 
+export interface Users {
+  id: string;
+}
+
 export interface DB {
   full_track_feature: FullTrackFeature;
+  listen_history: ListenHistory;
   track: Track;
   track_global_risks: TrackGlobalRisks;
   track_hrv_eff_predict: TrackHrvEffPredict;
   track_platform: TrackPlatform;
-  track_prediction: TrackPrediction;
   track_predictions_meta: TrackPredictionsMeta;
   track_validation_arrays: TrackValidationArrays;
+  users: Users;
 }

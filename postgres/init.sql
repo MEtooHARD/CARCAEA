@@ -8,6 +8,10 @@ CREATE TABLE IF NOT EXISTS track (
     thumbnail_duration FLOAT8 NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(64) PRIMARY KEY -- name VARCHAR(255) NOT NULL
+);
+
 CREATE TYPE platform AS ENUM ('jamendo');
 
 CREATE TABLE IF NOT EXISTS track_platform (
@@ -72,7 +76,7 @@ CREATE TABLE IF NOT EXISTS full_track_feature (
 CREATE TABLE IF NOT EXISTS track_hrv_eff_predict (
     track_id VARCHAR(64) PRIMARY KEY REFERENCES track(id) ON DELETE CASCADE,
     hr FLOAT8 NOT NULL,
-    emssd FLOAT8 NOT NULL,
+    rmssd FLOAT8 NOT NULL,
     lfhf FLOAT8 NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -83,3 +87,8 @@ CREATE TABLE IF NOT EXISTS track_hrv_eff_predict (
 --     user_id VARCHAR(64) NOT NULL,
 --     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
 -- );
+CREATE TABLE IF NOT EXISTS listen_history (
+    track_id VARCHAR(64) NOT NULL REFERENCES track(id) ON DELETE CASCADE,
+    user_id VARCHAR(64) NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
