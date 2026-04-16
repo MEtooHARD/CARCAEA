@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from 'express';
-import { conditional_list } from '../../util/conditional';
+import { conditional_list, num } from '../../util/conditional';
+import { HRV, HRVRange } from '../../core/Constants';
 
 const router = Router();
 
@@ -41,7 +42,26 @@ router.get('/', (req: Request, res: Response) => {
                 error: `Missing required query parameters: ${conditional_list([[!hr, 'hr'], [!rmssd, 'rmssd'], [!lfhf, 'lfhf']])}`
             });
 
-        // if ()
+        const HR = Number(hr);
+        const RMSSD = Number(rmssd);
+        const LFHF = Number(lfhf);
+
+        // check type and range
+        if (!num(HR, HRVRange[HRV.HR].min, HRVRange[HRV.HR].max))
+            return res.status(400).json({
+                success: false,
+                error: `Invalid 'hr' value. Expected a number between ${HRVRange[HRV.HR].min} and ${HRVRange[HRV.HR].max}.`
+            });
+        if (!num(RMSSD, HRVRange[HRV.RMSSD].min, HRVRange[HRV.RMSSD].max))
+            return res.status(400).json({
+                success: false,
+                error: `Invalid 'rmssd' value. Expected a number between ${HRVRange[HRV.RMSSD].min} and ${HRVRange[HRV.RMSSD].max}.`
+            });
+        if (!num(LFHF, HRVRange[HRV.LFHF].min, HRVRange[HRV.LFHF].max))
+            return res.status(400).json({
+                success: false,
+                error: `Invalid 'lfhf' value. Expected a number between ${HRVRange[HRV.LFHF].min} and ${HRVRange[HRV.LFHF].max}.`
+            });
 
         // 1.2 連線至資料庫，透過 `current_song_id` 撈取目前正在播放歌曲的詳細特徵。
 

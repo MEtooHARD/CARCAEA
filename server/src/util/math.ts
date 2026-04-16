@@ -20,3 +20,5 @@ export function logarize_pitch(pitch: number, min: number = 65, max: number = 10
 
     return clamp((logPitch - logMin) / (logMax - logMin));
 }
+
+export interface NumRange { min: number, max: number };

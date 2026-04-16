@@ -21,3 +21,30 @@ export function conditional_list(conditions: ConditionString[], splitter?: strin
         }, [] as string[]
     ).join(splitter ?? ', ');
 }
+
+
+export enum NumberCategories { Natural, Integer };
+
+export function num(num: any, min: number, max: number, flag?: NumberCategories): boolean {
+    if (typeof num !== 'number') return false;
+
+    if (isNaN(num) || !isFinite(num)) return false;
+
+    // Check min and max bounds first
+    if (num < min || num > max) return false;
+
+    // If no flags provided, just check bounds
+    if (flag === undefined) return true;
+
+    // Check each flag
+    switch (flag) {
+        case NumberCategories.Natural:
+            if (num < 0 || !Number.isInteger(num)) return false;
+            break;
+        case NumberCategories.Integer:
+            if (!Number.isInteger(num)) return false;
+            break;
+    }
+
+    return true;
+}
