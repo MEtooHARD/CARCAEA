@@ -23,6 +23,29 @@ class StatisticalAggregator:
         self.sr = sr
         self.hop_length = hop_length
 
+    @staticmethod
+    def _hz_to_midi(f0_hz: NDArray[np.float32]) -> NDArray[np.float32]:
+        """
+        將 F0 頻率（Hz）轉換為 MIDI 音階值
+
+        使用公式：midi = 69 + 12 * log2(f0 / 440)
+        其中 440 Hz 是 A4 的標準參考頻率
+
+        Args:
+            f0_hz: F0 頻率陣列（Hz）
+
+        Returns:
+            MIDI 音階陣列
+        """
+        # 過濾掉 0 值（無聲區間）
+        f0_non_zero = f0_hz[f0_hz > 0]
+        if len(f0_non_zero) == 0:
+            return np.array([], dtype=np.float32)
+
+        # 轉換公式：midi = 69 + 12 * log2(f0 / 440)
+        midi_values = 69.0 + 12.0 * np.log2(f0_non_zero / 440.0)
+        return midi_values.astype(np.float32)
+
     def aggregate_for_hrv_prediction(
         self,
         # 全曲特徵（用於全域風險指標）
@@ -142,6 +165,13 @@ class StatisticalAggregator:
         thumb_f0_mean = float(np.nanmean(f0_non_zero)) if len(
             f0_non_zero) > 0 else 0.0
 
+        # F0 MIDI 轉換与統計
+        f0_midi_values = self._hz_to_midi(thumbnail_f0_envelope_4hz)
+        thumb_f0_midi_variance = float(
+            np.var(f0_midi_values)) if len(f0_midi_values) > 0 else 0.0
+        thumb_f0_midi_std = float(
+            np.std(f0_midi_values)) if len(f0_midi_values) > 0 else 0.0
+
         thumb_loudness_mean = float(np.nanmean(thumbnail_loudness_envelope_4hz)) if len(
             thumbnail_loudness_envelope_4hz) > 0 else 0.0
         loudness_std = float(np.nanstd(thumbnail_loudness_envelope_4hz)) if len(
@@ -155,6 +185,8 @@ class StatisticalAggregator:
             "music_envelope_mean": thumb_music_mean,
             "music_envelope_std": thumb_music_std,
             "f0_envelope_mean_hz": thumb_f0_mean,
+            "f0_midi_variance": thumb_f0_midi_variance,
+            "f0_midi_std": thumb_f0_midi_std,
             "loudness_envelope_mean": thumb_loudness_mean,
             "loudness_stability": thumb_loudness_stability,
         }
