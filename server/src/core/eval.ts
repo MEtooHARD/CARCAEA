@@ -202,4 +202,4 @@ export const Predictors: Record<HRV, Predictor> = {
 };
 
 
-export function psycho_distance(target: HRVset, reference: HRVset) { };
+export function psycho_distance(target: HRVset, reference: HRVset) { }; 
