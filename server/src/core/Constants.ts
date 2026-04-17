@@ -3,11 +3,7 @@
 // *   **文獻來源：** 
 //     *   在 Gil 等人 (2010) 的傾斜床實驗中，健康受試者在平躺靜息（Supine）狀態下的平均 NN 間距為 $0.988 \pm 0.195$ 秒。換算成心率約為 **60.7 bpm**。
 
-<<<<<<< HEAD
 import type { NumRange } from "../util/numeric";
-=======
-import type { NumRange } from "../util/math";
->>>>>>> a39241b0597be0e29ec96e9a9ce7a61161fe6c5d
 
 //     *   在另一份探討心衰竭與健康受試者非線性特徵的對照研究中，健康組的平均 RR 間距為 $855.74 \pm 56.14$ 毫秒，換算成心率約為 **70.1 bpm**。
 export const DEFAULT_HEART_RATE = 65; // bpm
