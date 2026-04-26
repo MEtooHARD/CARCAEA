@@ -4,7 +4,7 @@ import type { Smoothness } from "../types/extract_complete_response";
 import type { HR_RMSSD_LFHF } from "../types/metrix";
 import { result, try_catch, type Result } from "../types/Result";
 import { HRV } from "./Constants";
-import { search_cube_bound } from "./eval";
+import { search_cube_bound, type HRVSearchBound } from "./eval";
 
 export type TrackInfo = {
     track: Track;
@@ -34,19 +34,16 @@ export class Retrieval {
         return result(res.data);
     }
 
-    public static async tracks_by_hrv(hrv: HR_RMSSD_LFHF): Promise<Result<TrackHrvEffPredict[]>> {
-
-        const bounds = search_cube_bound({ [HRV.HR]: hrv[HRV.HR], [HRV.RMSSD]: hrv[HRV.RMSSD], [HRV.LFHF]: hrv[HRV.LFHF] });
-
+    public static async tracks_by_hrv(bound: HRVSearchBound): Promise<Result<TrackHrvEffPredict[]>> {
         const res = await try_catch(db
             .selectFrom('track_hrv_eff_predict')
             .selectAll()
-            .where('hr', '>=', hrv[0] - bounds[HRV.HR].dn)
-            .where('hr', '<=', hrv[0] + bounds[HRV.HR].up)
-            .where('rmssd', '>=', hrv[1] - bounds[HRV.RMSSD].dn)
-            .where('rmssd', '<=', hrv[1] + bounds[HRV.RMSSD].up)
-            .where('lfhf', '>=', hrv[2] - bounds[HRV.LFHF].dn)
-            .where('lfhf', '<=', hrv[2] + bounds[HRV.LFHF].up)
+            .where('hr', '>=', bound[HRV.HR].dn)
+            .where('hr', '<=', bound[HRV.HR].up)
+            .where('rmssd', '>=', bound[HRV.RMSSD].dn)
+            .where('rmssd', '<=', bound[HRV.RMSSD].up)
+            .where('lfhf', '>=', bound[HRV.LFHF].dn)
+            .where('lfhf', '<=', bound[HRV.LFHF].up)
             .where('rmssd', 'is not', null)
             .execute() as unknown as Promise<TrackHrvEffPredict[]>
         );

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { HRV, HRVRange, type HRVset } from '../../core/Constants';
-import { psycho_distance } from '../../core/eval';
+import { psycho_distance, search_cube_bound } from '../../core/eval';
 import { Retrieval } from '../../core/retrieval';
 import { conditional_list } from '../../util/conditional';
 import { num } from '../../util/numeric';
@@ -91,7 +91,10 @@ router.get('/', async (req: Request, res: Response) => {
         //       當前端偵測到使用者狀態嚴重偏離靜息基準線，此模式會直接針對目標聲學特徵 
         //       (如 Tempo, Loudness, Pulse Clarity) 進行範圍篩選。
 
-        const res_hrv_cube_search = await Retrieval.tracks_by_hrv([HR, RMSSD, LFHF]);
+        const bounds = search_cube_bound({ [HRV.HR]: HR, [HRV.RMSSD]: RMSSD, [HRV.LFHF]: LFHF });
+        console.log("Calculated search bounds for HRV:", bounds);
+
+        const res_hrv_cube_search = await Retrieval.tracks_by_hrv(bounds);
 
         if (res_hrv_cube_search.error) {
             console.error("Database retrieval error on searching by HRV:", res_hrv_cube_search.error);
