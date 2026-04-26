@@ -78,6 +78,6 @@ export const HRVRange: Record<HRV, NumRange> = {
 
 export const SearchRadius: HRVset = {
     [HRV.HR]: 10, // bpm
-    [HRV.RMSSD]: 10, // ms
+    [HRV.RMSSD]: 1.2, // ln(ms)
     [HRV.LFHF]: 2 // ratio
 }
