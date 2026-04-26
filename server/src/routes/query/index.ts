@@ -120,6 +120,8 @@ router.get('/', async (req: Request, res: Response) => {
             });
         }
 
+        console.log(`Found ${candidates_in_cube.length} candidate tracks within HRV bounds.`);
+
         // ============================================================================
         // Step 3: 二階精細向量距離與方向計分 (Vector Distance & Cosine Similarity)
         // ============================================================================
