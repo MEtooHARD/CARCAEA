@@ -10,3 +10,5 @@ server/model_metadata/
 test/_aud/
 test/audio_samples/
 server/aud_tmp/
+
+backup.sql
