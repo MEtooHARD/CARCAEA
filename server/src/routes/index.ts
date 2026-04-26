@@ -5,11 +5,11 @@ import { mid_logger } from '../util/middleware';
 
 const router = express.Router();
 
-router.use(
-    '/songs',
-    mid_logger('/songs'),
-    songs
-);
+// router.use(
+//     '/songs',
+//     mid_logger('/songs'),
+//     songs
+// );
 
 router.use(
     '/query',
