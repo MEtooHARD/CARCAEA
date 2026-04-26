@@ -28,6 +28,8 @@ RUN npm install
 # Copy source code
 COPY src ./src
 
+
+
 # Copy model metadata
 # COPY model_metadata/ ./model_metadata/
 

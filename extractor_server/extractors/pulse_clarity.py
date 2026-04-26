@@ -6,6 +6,7 @@ from typing import Any, Dict
 import numpy as np
 from numpy.typing import NDArray
 import librosa
+import time
 from .base import AudioExtractor
 from config import PULSE_CLARITY_HOP_LENGTH
 import sys
@@ -32,9 +33,12 @@ class PulseClarityExtractor(AudioExtractor):
                 "tempo_estimate": float (BPM)
             }
         """
+        t_start = time.time()
+        logger.info(f"[PulseClarityExtractor] Starting pulse clarity extraction...")
         self._validate_audio(audio_data)
 
         # 计算起音强度
+        t_onset = time.time()
         onset_strength = librosa.onset.onset_strength(
             y=audio_data,
             sr=sr,
@@ -141,7 +145,7 @@ class PulseClarityExtractor(AudioExtractor):
         # 计算整个tempogram的最大值时间线（用于对比）
         max_tempogram_per_frame = np.max(tempogram, axis=0)
 
-        return {
+        result = {
             "pulse_clarity": pulse_clarity,  # 步骤三：全域平均值（用于预测）
             "pulse_clarity_timeline": pulse_clarity_timeline.tolist(),  # 步骤二：时序数据（用于即时验证）
             "confidence": float(np.mean(pulse_clarity_timeline)),
@@ -150,3 +154,6 @@ class PulseClarityExtractor(AudioExtractor):
             "max_tempogram": max_tempogram_per_frame.tolist(),
             "tempogram_times": tempogram_times
         }
+        t_total = time.time() - t_start
+        logger.info(f"[PulseClarityExtractor] ✓ Completed in {t_total:.3f}s")
+        return result

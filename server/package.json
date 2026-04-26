@@ -6,7 +6,8 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "generate:db": "kysely-codegen --dialect postgres --out-file ./src/types/database_schema.d.ts",
-    "import:audio": "tsx src/import-audio-data.ts"
+    "predictors:report": "tsx src/scripts/predictors_report.ts",
+    "import:tracks": "tsx src/import_track.ts"
   },
   "type": "module",
   "keywords": [],
@@ -26,6 +27,7 @@
     "express": "^5.2.1",
     "kysely": "^0.28.9",
     "kysely-codegen": "^0.10.1",
+    "musicmetadata": "^2.0.5",
     "pg": "^8.16.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",

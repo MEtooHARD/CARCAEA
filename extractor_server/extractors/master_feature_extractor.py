@@ -92,7 +92,7 @@ class MasterFeatureExtractor:
         sr: int,
         thumbnail_duration: float = 25.0,
         min_duration: float = 20.0,
-        max_duration: float = 30.0,
+        max_duration: float = 35.0,
     ) -> Dict[str, Any]:
         """
         完整的四階段醫療級特徵提取管道

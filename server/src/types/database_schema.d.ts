@@ -54,6 +54,7 @@ export interface TrackGlobalRisks {
   pulse_clarity: number;
   tempo_category: TempoCategory;
   tempo_bpm: number;
+  tempo_score: number;
   dynamic_range_db: number;
   mean_loudness_db: number;
   mean_f0_hz: number;
@@ -82,6 +83,9 @@ export interface TrackPredictionsMeta {
   music_envelope_mean: number;
   music_envelope_std: number;
   f0_envelope_mean_hz: number;
+  f0_midi_mean: number;
+  f0_midi_variance: number;
+  f0_midi_std: number;
   loudness_envelope_mean: number;
   loudness_stability: number;
   smoothness: Json;

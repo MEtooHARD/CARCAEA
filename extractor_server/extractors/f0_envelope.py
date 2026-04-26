@@ -6,8 +6,12 @@ from typing import Any, Dict
 import numpy as np
 from numpy.typing import NDArray
 import librosa
+import time
+import logging
 from .base import AudioExtractor
 from config import F0_FMIN, F0_FMAX, F0_HOP_LENGTH
+
+logger = logging.getLogger(__name__)
 
 
 class F0EnvelopeExtractor(AudioExtractor):
@@ -30,6 +34,8 @@ class F0EnvelopeExtractor(AudioExtractor):
                 "f0_range": {"min": float, "max": float}
             }
         """
+        t_start = time.time()
+        logger.info(f"[F0EnvelopeExtractor] Starting F0 extraction...")
         self._validate_audio(audio_data)
 
         try:
@@ -133,7 +139,7 @@ class F0EnvelopeExtractor(AudioExtractor):
             else:
                 f0_list.append(None)
 
-        return {
+        result = {
             "f0_values": f0_list,
             "f0_confidence": confidence_list,
             "f0_voiced": voiced_list,
@@ -147,3 +153,6 @@ class F0EnvelopeExtractor(AudioExtractor):
             "total_frames": len(f0),
             "voicing_ratio": float(voiced_count / len(f0)) if len(f0) > 0 else 0.0
         }
+        t_total = time.time() - t_start
+        logger.info(f"[F0EnvelopeExtractor] ✓ Completed in {t_total:.3f}s")
+        return result

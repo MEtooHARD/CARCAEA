@@ -46,7 +46,7 @@ export enum AudioFeatures {
 
 export enum HRV { HR, RMSSD, LFHF };
 
-export type HRVset = Record<HRV, number>;
+export type HRVset<T = number> = Record<HRV, T>;
 
 export type Predictor = (T: number, L: number, F_var: number, Pc: number, Pi: number, M: number) => number;
 
@@ -67,7 +67,7 @@ export const HRV_LOG_STD: Record<HRV, number> = {
 export const HRV_PHYCHO_IMPORTANCE: Record<HRV, number> = {
     [HRV.HR]: 1.5,
     [HRV.RMSSD]: 1.0,
-    [HRV.LFHF]: 6.0
+    [HRV.LFHF]: 2.0
 }
 
 export const HRVRange: Record<HRV, NumRange> = {
@@ -76,6 +76,8 @@ export const HRVRange: Record<HRV, NumRange> = {
     [HRV.LFHF]: { min: 0.1, max: 20 }
 }
 
-export const HRRadius = 10;
-export const RMSSDRadius = 10;
-export const LFHFRadius = 2;
+export const SearchRadius: HRVset = {
+    [HRV.HR]: 10, // bpm
+    [HRV.RMSSD]: 10, // ms
+    [HRV.LFHF]: 2 // ratio
+}

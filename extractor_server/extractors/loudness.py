@@ -8,8 +8,12 @@ import librosa
 from scipy import signal
 from scipy import stats
 from typing import cast, Tuple, Any, Dict
+import time
+import logging
 from .base import AudioExtractor
 from config import LOUDNESS_HOP_LENGTH, LOUDNESS_FILTER_ORDER, LOUDNESS_CUTOFF_FREQ
+
+logger = logging.getLogger(__name__)
 
 
 class LoudnessExtractor(AudioExtractor):
@@ -32,6 +36,8 @@ class LoudnessExtractor(AudioExtractor):
                 "times": list
             }
         """
+        t_start = time.time()
+        logger.info(f"[LoudnessExtractor] Starting loudness extraction...")
         self._validate_audio(audio_data)
 
         # 计算 RMS 能量
@@ -92,7 +98,7 @@ class LoudnessExtractor(AudioExtractor):
             hop_length=LOUDNESS_HOP_LENGTH
         ).tolist()
 
-        return {
+        result = {
             "loudness_rms": rms.tolist(),
             "loudness_db": loudness_db.tolist(),
             "loudness_envelope": envelope.tolist(),
@@ -104,3 +110,6 @@ class LoudnessExtractor(AudioExtractor):
             "dynamic_range_db": peak_loudness_db - min_loudness_db,
             "times": times
         }
+        t_total = time.time() - t_start
+        logger.info(f"[LoudnessExtractor] ✓ Completed in {t_total:.3f}s")
+        return result

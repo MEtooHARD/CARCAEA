@@ -6,8 +6,12 @@ from typing import Any, Dict
 import numpy as np
 from numpy.typing import NDArray
 import librosa
+import time
+import logging
 from .base import AudioExtractor
 from config import TEMPO_HOP_LENGTH, TEMPO_START_BPM
+
+logger = logging.getLogger(__name__)
 
 
 class TempoExtractor(AudioExtractor):
@@ -29,9 +33,12 @@ class TempoExtractor(AudioExtractor):
                 "tempogram_times": list
             }
         """
+        t_start = time.time()
+        logger.info(f"[TempoExtractor] Starting tempo extraction...")
         self._validate_audio(audio_data)
 
         # 使用 librosa 的 beat_track 直接获取 BPM 和节拍位置
+        t_beat = time.time()
         tempo, beats = librosa.beat.beat_track(
             y=audio_data,
             sr=sr,
@@ -41,15 +48,21 @@ class TempoExtractor(AudioExtractor):
         )
 
         bpm = float(tempo)
+        t_beat_done = time.time()
+        logger.info(f"  ⏱️  beat_track: {t_beat_done - t_beat:.3f}s")
 
         # 计算起音强度用于置信度评估
+        t_onset = time.time()
         onset_strength = librosa.onset.onset_strength(
             y=audio_data,
             sr=sr,
             hop_length=TEMPO_HOP_LENGTH
         )
+        t_onset_done = time.time()
+        logger.info(f"  ⏱️  onset_strength: {t_onset_done - t_onset:.3f}s")
 
         # 计算 Tempogram
+        t_tempogram = time.time()
         tempogram = librosa.feature.tempogram(
             y=audio_data,
             sr=sr,
@@ -91,3 +104,5 @@ class TempoExtractor(AudioExtractor):
             "max_tempogram": np.max(tempogram, axis=0).tolist() if tempogram.shape[0] > 0 else [],
             "tempogram_times": tempogram_times
         }
+        t_total = time.time() - t_start
+        logger.info(f"[TempoExtractor] ✓ Completed in {t_total:.3f}s")

@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS track_global_risks (
     pulse_clarity FLOAT8 NOT NULL,
     tempo_category tempo_category NOT NULL,
     tempo_bpm FLOAT8 NOT NULL,
+    tempo_score FLOAT8 NOT NULL,
     dynamic_range_db FLOAT8 NOT NULL,
     mean_loudness_db FLOAT8 NOT NULL,
     mean_f0_hz FLOAT8 NOT NULL,
@@ -45,6 +46,9 @@ CREATE TABLE IF NOT EXISTS track_predictions_meta (
     music_envelope_mean FLOAT8 NOT NULL,
     music_envelope_std FLOAT8 NOT NULL,
     f0_envelope_mean_hz FLOAT8 NOT NULL,
+    f0_midi_mean FLOAT8 NOT NULL,
+    f0_midi_variance FLOAT8 NOT NULL,
+    f0_midi_std FLOAT8 NOT NULL,
     loudness_envelope_mean FLOAT8 NOT NULL,
     loudness_stability FLOAT8 NOT NULL,
     smoothness JSONB NOT NULL -- {head: {f0_mean, music_mean, loudness_mean}, tail: {f0_mean, music_mean, loudness_mean}}

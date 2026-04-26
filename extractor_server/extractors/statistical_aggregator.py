@@ -167,6 +167,8 @@ class StatisticalAggregator:
 
         # F0 MIDI 轉換与統計
         f0_midi_values = self._hz_to_midi(thumbnail_f0_envelope_4hz)
+        thumb_f0_midi_mean = float(
+            np.mean(f0_midi_values)) if len(f0_midi_values) > 0 else 0.0
         thumb_f0_midi_variance = float(
             np.var(f0_midi_values)) if len(f0_midi_values) > 0 else 0.0
         thumb_f0_midi_std = float(
@@ -185,6 +187,7 @@ class StatisticalAggregator:
             "music_envelope_mean": thumb_music_mean,
             "music_envelope_std": thumb_music_std,
             "f0_envelope_mean_hz": thumb_f0_mean,
+            "f0_midi_mean": thumb_f0_midi_mean,
             "f0_midi_variance": thumb_f0_midi_variance,
             "f0_midi_std": thumb_f0_midi_std,
             "loudness_envelope_mean": thumb_loudness_mean,

@@ -6,8 +6,12 @@ from typing import Any, Dict
 import numpy as np
 from numpy.typing import NDArray
 import librosa
+import time
+import logging
 from .base import AudioExtractor
 from config import MODE_CHROMA_TYPE, MODE_N_FFT, MODE_HOP_LENGTH
+
+logger = logging.getLogger(__name__)
 
 
 class ModeExtractor(AudioExtractor):
@@ -40,9 +44,12 @@ class ModeExtractor(AudioExtractor):
                 "times": list (时间戳)
             }
         """
+        t_start = time.time()
+        logger.info(f"[ModeExtractor] Starting mode extraction...")
         self._validate_audio(audio_data)
 
         # 提取色度图 (Chroma features)
+        t_chroma = time.time()
         if MODE_CHROMA_TYPE.lower() == "cqt":
             chroma = librosa.feature.chroma_cqt(  # type: ignore
                 y=audio_data,
@@ -56,7 +63,8 @@ class ModeExtractor(AudioExtractor):
                 n_fft=MODE_N_FFT,
                 hop_length=MODE_HOP_LENGTH
             )
-
+        t_chroma_done = time.time()
+        logger.info(f"  ⏱️  chroma extraction: {t_chroma_done - t_chroma:.3f}s")
         if chroma.shape[1] == 0:
             return {
                 "mode": 0.5,
@@ -121,7 +129,7 @@ class ModeExtractor(AudioExtractor):
         mode_label = "major" if mode_score > 0.5 else "minor"
         mean_major_strength = float(np.mean(major_strength_timeline))
 
-        return {
+        result = {
             "mode": mode_score,
             "mode_label": mode_label,
             "confidence": confidence,
@@ -133,3 +141,6 @@ class ModeExtractor(AudioExtractor):
             "chroma": chroma.tolist(),
             "times": times
         }
+        t_total = time.time() - t_start
+        logger.info(f"[ModeExtractor] ✓ Completed in {t_total:.3f}s")
+        return result

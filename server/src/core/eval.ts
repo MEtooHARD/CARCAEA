@@ -2,7 +2,7 @@ import type { SmoothnessMetrics } from "../types/extract_complete_response";
 import type { HR_RMSSD_LFHF } from "../types/metrix";
 import { freq_to_midi } from "../util/numeric";
 import { cosineSimilarity, euclideanDistance } from "../util/pred";
-import { HRV, HRVbase, type HRVset, type Predictor } from "./Constants";
+import { HRV, HRV_LOG_STD, HRV_PHYCHO_IMPORTANCE, HRVbase, HRVRange, SearchRadius, type HRVset, type Predictor } from "./Constants";
 
 const MAX_DB_DIFF = 20.0; // 響度落差容忍上限 (dB)
 const MAX_HZ_DIFF = 400.0; // 基頻落差容忍上限 (Hz)
@@ -70,7 +70,7 @@ export const Predictors: Record<HRV, Predictor> = {
     // HEART RATE (HR)
     // Structure: Base + 2 terms (Asymmetrical, strictly driven by entrainment & arousal)
     // ------------------------------------------------------------------------
-    [HRV.HR]: ((T, L, F, Pc, Pi, M): number => (
+    [HRV.HR]: ((T, L, Fv, Pc, Pi, M): number => (
         + (HRVbase[HRV.HR])
 
         /**
@@ -100,7 +100,7 @@ export const Predictors: Record<HRV, Predictor> = {
     // RMSSD (Parasympathetic / Relaxation)
     // Structure: Base + 4 terms (Driven by cognitive load, musical mode, and energy)
     // ------------------------------------------------------------------------
-    [HRV.RMSSD]: ((T, L, F, Pc, Pi, M): number => (
+    [HRV.RMSSD]: ((T, L, Fv, Pc, Pi, M): number => (
         + (HRVbase[HRV.RMSSD])
 
         /**
@@ -113,7 +113,7 @@ export const Predictors: Record<HRV, Predictor> = {
          * - Exploring the causal relationships between musical features and physiological 
          *   indicators of emotion (Nardelli et al., 2015 / Literature Context).
          */
-        - (0.4 * F)
+        - (0.4 * Fv)
 
         /**
          * [Synergistic Vagal Suppression]
@@ -150,7 +150,7 @@ export const Predictors: Record<HRV, Predictor> = {
     // LF/HF (Sympathetic / Stress & Arousal)
     // Structure: Base + 4 terms (Driven by punchiness, staccato, F0 causal drive, and high pitch)
     // ------------------------------------------------------------------------
-    [HRV.LFHF]: ((T, L, F, Pc, Pi, M): number => {
+    [HRV.LFHF]: ((T, L, Fv, Pc, Pi, M): number => {
         const MIDI = freq_to_midi(Pi);
 
         return Math.log(
@@ -186,7 +186,7 @@ export const Predictors: Record<HRV, Predictor> = {
              * - Exploring the causal relationships between musical features and physiological 
              *   indicators of emotion (Literature Context).
              */
-            + (0.8 * F)
+            + (0.8 * Fv)
 
             /**
              * [High-Frequency / Spectral Tension]
@@ -201,5 +201,41 @@ export const Predictors: Record<HRV, Predictor> = {
     })
 };
 
+export type HRVSearchBound = HRVset<{ up: number, dn: number }>;
 
-export function psycho_distance(target: HRVset, reference: HRVset) { }; 
+export function search_cube_bound(target: HRVset): HRVSearchBound {
+    return {
+        [HRV.HR]: {
+            up: Math.min(HRVRange[HRV.HR].max, target[HRV.HR] + SearchRadius[HRV.HR]),
+            dn: Math.max(HRVRange[HRV.HR].min, target[HRV.HR] - SearchRadius[HRV.HR])
+        },
+        [HRV.RMSSD]: {
+            up: Math.log(Math.min(HRVRange[HRV.RMSSD].max, target[HRV.RMSSD] + SearchRadius[HRV.RMSSD])),
+            dn: Math.log(Math.max(HRVRange[HRV.RMSSD].min, target[HRV.RMSSD] - SearchRadius[HRV.RMSSD]))
+        },
+        [HRV.LFHF]: {
+            up: Math.log(Math.min(HRVRange[HRV.LFHF].max, target[HRV.LFHF] + SearchRadius[HRV.LFHF])),
+            dn: Math.log(Math.max(HRVRange[HRV.LFHF].min, target[HRV.LFHF] - SearchRadius[HRV.LFHF]))
+        }
+    }
+}
+
+export function psycho_distance(item_a: HRVset, item_b: HRVset): number {
+    // z-score normalization for each HRV metric
+    const z_hr = (item_a[HRV.HR] - item_b[HRV.HR]) / HRV_LOG_STD[HRV.HR];
+    const z_rmssd = (item_a[HRV.RMSSD] - item_b[HRV.RMSSD]) / HRV_LOG_STD[HRV.RMSSD];
+    const z_lfhf = (item_a[HRV.LFHF] - item_b[HRV.LFHF]) / HRV_LOG_STD[HRV.LFHF];
+
+    // Step B: apply psychoacoustic weights
+    const weight_hr = HRV_PHYCHO_IMPORTANCE[HRV.HR];
+    const weight_rmssd = HRV_PHYCHO_IMPORTANCE[HRV.RMSSD];
+    const weight_lfhf = HRV_PHYCHO_IMPORTANCE[HRV.LFHF];
+
+    const distance = Math.sqrt(
+        (weight_hr * Math.pow(z_hr, 2)) +
+        (weight_rmssd * Math.pow(z_rmssd, 2)) +
+        (weight_lfhf * Math.pow(z_lfhf, 2))
+    );
+
+    return distance;
+};

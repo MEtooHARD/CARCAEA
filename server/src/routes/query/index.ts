@@ -1,11 +1,12 @@
 import { Router, type Request, type Response } from 'express';
-import { HRV, HRVRange } from '../../core/Constants';
+import { HRV, HRVRange, type HRVset } from '../../core/Constants';
+import { psycho_distance } from '../../core/eval';
 import { Retrieval } from '../../core/retrieval';
-import type { SmoothnessMetrics } from '../../types/extract_complete_response';
 import { conditional_list } from '../../util/conditional';
 import { num } from '../../util/numeric';
 
 const router = Router();
+const MAX_RESULTS = 50;
 
 router.get('/', async (req: Request, res: Response) => {
     try {
@@ -41,7 +42,7 @@ router.get('/', async (req: Request, res: Response) => {
             hr,
             rmssd,
             lfhf,
-            current_song_id
+            // current_song_id
         } = req.query;
 
         if (!hr || !rmssd || !lfhf)
@@ -71,17 +72,7 @@ router.get('/', async (req: Request, res: Response) => {
                 error: `Invalid 'lfhf' value. Expected a number between ${HRVRange[HRV.LFHF].min} and ${HRVRange[HRV.LFHF].max}.`
             });
 
-        // 1.2 連線至資料庫，透過 `current_song_id` 撈取目前正在播放歌曲的詳細特徵。
-        // 1.3 特別提取該歌曲尾奏 (tail) 的 SmoothnessMetrics (包含 f0_mean, music_mean, 
-        //     loudness_mean)，暫存於記憶體，準備用於後續的過場平順度比對。
-
-        let prev_tail: SmoothnessMetrics | null = null;
-        if (current_song_id && typeof current_song_id === 'string') {
-            const res = await Retrieval.smoothness(current_song_id);
-
-            if (res.data) prev_tail = res.data.tail;
-            else console.warn(`Could not retrieve smoothness metrics for current_song_id: ${current_song_id}. Proceeding without smoothness evaluation.`);
-        }
+        const TARGET_HRVset: HRVset = { [HRV.HR]: HR, [HRV.RMSSD]: RMSSD, [HRV.LFHF]: LFHF };
 
         // ============================================================================
         // Step 2: 資料庫層級的一階初篩與排除 (Database Exclusion & Bounding Box)
@@ -100,24 +91,24 @@ router.get('/', async (req: Request, res: Response) => {
         //       當前端偵測到使用者狀態嚴重偏離靜息基準線，此模式會直接針對目標聲學特徵 
         //       (如 Tempo, Loudness, Pulse Clarity) 進行範圍篩選。
 
-        const res_lv1_candidates = await Retrieval.tracks_by_hrv([HR, RMSSD, LFHF]);
+        const res_hrv_cube_search = await Retrieval.tracks_by_hrv([HR, RMSSD, LFHF]);
 
-        if (res_lv1_candidates.error) {
-            console.error("Database retrieval error on searching by HRV:", res_lv1_candidates.error);
+        if (res_hrv_cube_search.error) {
+            console.error("Database retrieval error on searching by HRV:", res_hrv_cube_search.error);
             return res.status(500).json({
                 success: false,
                 error: "Internal Server Error during database retrieval."
             });
         }
 
-        if (!res_lv1_candidates.data || res_lv1_candidates.data.length === 0) {
+        if (!res_hrv_cube_search.data || res_hrv_cube_search.data.length === 0) {
             return res.status(404).json({
                 success: false,
                 error: "No candidate tracks found matching the HRV criteria."
             });
         }
 
-        const lv1_candidates = res_lv1_candidates.data;
+        const candidates_in_cube = res_hrv_cube_search.data;
 
         // ============================================================================
         // Step 3: 二階精細向量距離與方向計分 (Vector Distance & Cosine Similarity)
@@ -126,35 +117,42 @@ router.get('/', async (req: Request, res: Response) => {
         // 3.1 歐氏距離計算 (Euclidean Distance):
         //     計算候選歌曲預測向量與 target_vector 的空間距離。將邊界盒修剪成完美的球形，
         //     距離越小代表單次藥效強度 (Magnitude) 與需求越吻合。
-        // 3.2 餘弦相似度計算 (Cosine Similarity):
-        //     計算兩向量在空間中的夾角。在靠近原點的微調區域，餘弦相似度能嚴格把關，
-        //     若作用方向與目標方向相反 (夾角 > 90 度，餘弦值 < 0)，則直接淘汰。
-        // 3.3 基礎計分 (Base Scoring):
-        //     結合歐氏距離與餘弦相似度，算出該首歌曲的核心匹配分數 (match_score)。
 
-        // ============================================================================
-        // Step 4: 首尾平順度懲罰計算 (Smoothness Penalty Evaluation)
-        // ============================================================================
-        // 為了避免音量或音高的瞬間落差觸發使用者的驚跳反射 (Startle Reflex)：
-        // 4.1 取出每一首候選歌曲的前奏 (head) SmoothnessMetrics。
-        // 4.2 即時正規化差值 (On-the-fly Normalization):
-        //     比較「候選歌前奏」與「目前播放歌曲尾奏」的特徵落差。針對 Loudness (容忍上限 20dB)
-        //     與 F0 (容忍上限 400Hz) 進行落差擷斷 (Clipping) 正規化至 0.0 ~ 1.0 區間。
-        // 4.3 加權特徵距離:
-        //     代入神經驅動力權重 (Loudness: 0.45, F0: 0.35, Music: 0.20) 算出總特徵落差。
-        // 4.4 指數衰減轉換 (Exponential Decay Mapping):
-        //     透過 `exp(-lambda * distance)` 將落差轉換為 0.0 ~ 1.0 的 smoothness_score。
+        // sort using psycho_distance
+        const dist_scored_candidates: Array<{ id: string, distance: number }> = candidates_in_cube.map(candidate => {
+            const pred_hrv: HRVset = { [HRV.HR]: candidate.hr, [HRV.RMSSD]: candidate.rmssd, [HRV.LFHF]: candidate.lfhf };
+
+            const distance = psycho_distance(pred_hrv, TARGET_HRVset);
+
+            return { id: candidate.track_id, distance };
+        });
 
         // ============================================================================
         // Step 5: 綜合排序與回傳 (Final Ranking & Response)
         // ============================================================================
-        // 5.1 計算最終總分 (Final Score): 
-        //     final_score = match_score * smoothness_score。
-        //     (若平順度落差過大，分數會因指數衰減而急遽跳水，直接失去競爭資格)。
-        // 5.2 降冪排序 (Descending Sort): 根據 final_score 對候選名單重新排序。
-        // 5.3 截斷名單 (Limiting): 取出陣列的前 `limit` 筆 (如 Top 5) 作為最終短歌單。
-        // 5.4 API 回傳: 
-        //     將這 5 首歌的 ID、基礎分數、平順度分數包裝成 JSON 格式回傳給前端。
+        // 5.1 降冪排序 (Descending Sort): 根據距離對候選名單重新排序。
+        const sorted_candidates = dist_scored_candidates.sort((a, b) => a.distance - b.distance);
+
+        // 5.2 截斷名單 (Limiting): 取出陣列的前 `limit` 筆 (如 Top 50) 作為最終短歌單。
+        const first_n_candidates = sorted_candidates.slice(0, MAX_RESULTS);
+
+        // 5.3 API 回傳: 
+        //     將這 n 首歌的 ID 與完整資訊包裝成 JSON 格式回傳給前端。
+
+        const res_track_info = await Retrieval.track_info(first_n_candidates.map(c => c.id));
+
+        if (res_track_info.error) {
+            console.error("Database retrieval error on fetching track info:", res_track_info.error);
+            return res.status(500).json({
+                success: false,
+                error: "Internal Server Error during fetching track information."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: res_track_info.data
+        });
         //
         // ============================================================================
         // [前端後續處理提醒]: 

@@ -39,7 +39,7 @@ class ThumbnailSegmenter:
         music_envelope: NDArray[np.float32] = None,
         thumbnail_duration: float = 25.0,
         min_duration: float = 20.0,
-        max_duration: float = 30.0,
+        max_duration: float = 35.0,
         threshold: float = 0.6
     ) -> Tuple[float, float, int, int]:
         """
