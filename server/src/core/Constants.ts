@@ -72,8 +72,8 @@ export const HRV_PHYCHO_IMPORTANCE: Record<HRV, number> = {
 
 export const HRVRange: Record<HRV, NumRange> = {
     [HRV.HR]: { min: 40, max: 210 },
-    [HRV.RMSSD]: { min: 5, max: 150 },
-    [HRV.LFHF]: { min: 0.1, max: 20 }
+    [HRV.RMSSD]: { min: -3, max: 4.5 },
+    [HRV.LFHF]: { min: -3, max: 4 }
 }
 
 export const SearchRadius: HRVset = {
