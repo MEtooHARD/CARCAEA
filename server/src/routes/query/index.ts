@@ -108,7 +108,14 @@ router.get('/', async (req: Request, res: Response) => {
             });
         }
 
-        const candidates_in_cube = res_hrv_cube_search.data;
+        const candidates_in_cube = res_hrv_cube_search.data.filter(c => !isNaN(c.rmssd) && !isNaN(c.hr) && !isNaN(c.lfhf));
+
+        if (candidates_in_cube.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: "No candidate tracks found matching the HRV criteria.."
+            });
+        }
 
         // ============================================================================
         // Step 3: 二階精細向量距離與方向計分 (Vector Distance & Cosine Similarity)

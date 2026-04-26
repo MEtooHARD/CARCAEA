@@ -47,7 +47,6 @@ export class Retrieval {
             .where('rmssd', '<=', hrv[1] + bounds[HRV.RMSSD].up)
             .where('lfhf', '>=', hrv[2] - bounds[HRV.LFHF].dn)
             .where('lfhf', '<=', hrv[2] + bounds[HRV.LFHF].up)
-            .where('rmssd', 'is not', NaN)
             .where('rmssd', 'is not', null)
             .execute() as unknown as Promise<TrackHrvEffPredict[]>
         );
