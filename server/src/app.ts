@@ -14,36 +14,20 @@ const app = express();
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send('You\'re at the wrong place, dumbass.');
-})
-
-app.use('/', mid_logger('==='), routes);
-
-/**
- * @swagger
- * /health:
- *   get:
- *     summary: Health check endpoint
- *     description: Returns server health status
- *     tags:
- *       - System
- *     responses:
- *       200:
- *         description: Server is healthy
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: "ok"
- */
+// Health check - highest priority
 app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
+// API routes
+app.use('/', mid_logger('==='), routes);
+
+// Root path fallback
+app.get('/', (req, res) => {
+    res.send('You\'re at the wrong place, dumbass.');
+});
+
+// Error handler - last
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });
