@@ -1,14 +1,15 @@
 import { Kysely, PostgresDialect } from "kysely";
-import type { DB } from "./database_schema";
 import { Pool } from "pg";
+import { database_name, database_port, postgres_db_name, postgres_password, postgres_user } from "../config";
+import type { DB } from "./database_schema";
 
 const dialect = new PostgresDialect({
     pool: new Pool({
-        host: process.env.DATABASE,
-        database: process.env.ARCAEA_DB,
-        user: process.env.POSTGRES_USER,
-        port: Number(process.env.DB_PORT) || 5432,
-        password: process.env.POSTGRES_PASSWORD
+        host: database_name,
+        database: postgres_db_name,
+        user: postgres_user,
+        port: Number(database_port) || 5432,
+        password: postgres_password
     })
 })
 

@@ -68,14 +68,11 @@ class ThumbnailSegmenter:
         frames_per_sec = self.sr / self.hop_length
         
         if is_preprocessed:
-            # 輸入已經預先降採樣（但不一定是 1 Hz）
-            # CENS 輸出的頻率是 ~11 Hz（hop_length=512, sr=22050, downsample_factor=4）
-            # 需要再降採樣到 1 Hz
-            chroma_cens = chroma
-            cens_frame_rate = frames_per_sec / 4  # CENS 的降採樣因子通常是 4
-            cens_downsample_to_1hz = int(np.round(cens_frame_rate))  # ~11
-            chroma_downsampled = self._downsample_chroma(chroma_cens, cens_downsample_to_1hz)
-            print(f"[ThumbnailSegmenter] ℹ️  使用預處理的 CENS chroma：{cens_frame_rate:.1f} Hz → 1 Hz (降採樣因子: {cens_downsample_to_1hz})")
+            # 輸入已經預先降採樣，直接使用
+            chroma_downsampled = chroma
+            print(f"[ThumbnailSegmenter] ℹ️  使用預處理的 chroma 矩陣（已降採樣）")
+            # 當輸入已是每秒 1 幀時，時間分辨率為 1 秒/幀
+            # （實際上取決於 CENS 的降採樣因子，但通常是這樣）
         else:
             # 原始邏輯：計算需要的降採樣因子
             # 目標：1 Hz (1 frame per second)

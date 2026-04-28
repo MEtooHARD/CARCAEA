@@ -77,6 +77,22 @@ class StatisticalAggregator:
         thumbnail_music_envelope_4hz: NDArray[np.float32],  # (120 for 30s)
         thumbnail_f0_envelope_4hz: NDArray[np.float32],
         thumbnail_loudness_envelope_4hz: NDArray[np.float32],
+        thumbnail_pyin_f0_envelope_4hz: Optional[NDArray[np.float32]] = None,
+        
+        # NEW: Chroma-based 特徵（EDM/重金屬改進）
+        thumbnail_dominant_pitch_4hz: Optional[NDArray[np.float32]] = None,  # 1-12 或 0
+        thumbnail_chroma_flux_4hz: Optional[NDArray[np.float32]] = None,     # 通量值
+        chroma_flux_mean: Optional[float] = None,
+        chroma_flux_std: Optional[float] = None,
+        chroma_flux_var: Optional[float] = None,  # NEW: 變異數
+        dominant_pitch_mean: Optional[float] = None,
+
+        # NEW: 全曲的 4Hz 重採樣包絡線（與縮圖保持命名一致）
+        full_pyin_f0_envelope_4hz: Optional[NDArray[np.float32]] = None,
+        full_dominant_pitch_4hz: Optional[NDArray[np.float32]] = None,
+        full_chroma_flux_4hz: Optional[NDArray[np.float32]] = None,
+        full_music_envelope_4hz: Optional[NDArray[np.float32]] = None,
+        full_loudness_envelope_4hz: Optional[NDArray[np.float32]] = None,
 
         # 驗證用數據
         coherence_with_user_hrv: Optional[float] = None,  # 用戶實測 HRV 與音樂相關係數
@@ -160,19 +176,14 @@ class StatisticalAggregator:
         thumb_music_std = float(np.nanstd(thumbnail_music_envelope_4hz)) if len(
             thumbnail_music_envelope_4hz) > 0 else 0.0
 
-        # F0 處理：忽略 0 值（無聲區間）
-        f0_non_zero = thumbnail_f0_envelope_4hz[thumbnail_f0_envelope_4hz > 0]
-        thumb_f0_mean = float(np.nanmean(f0_non_zero)) if len(
-            f0_non_zero) > 0 else 0.0
-
-        # F0 MIDI 轉換与統計
-        f0_midi_values = self._hz_to_midi(thumbnail_f0_envelope_4hz)
-        thumb_f0_midi_mean = float(
-            np.mean(f0_midi_values)) if len(f0_midi_values) > 0 else 0.0
-        thumb_f0_midi_variance = float(
-            np.var(f0_midi_values)) if len(f0_midi_values) > 0 else 0.0
-        thumb_f0_midi_std = float(
-            np.std(f0_midi_values)) if len(f0_midi_values) > 0 else 0.0
+        # Chroma 音階統計（1-12 scale，忽略 0 值表示無聲）
+        chroma_pitch_nonzero = thumbnail_f0_envelope_4hz[thumbnail_f0_envelope_4hz > 0]
+        chroma_dominant_pitch_mean_calc = float(np.mean(chroma_pitch_nonzero)) if len(
+            chroma_pitch_nonzero) > 0 else 0.0
+        chroma_dominant_pitch_std = float(np.std(chroma_pitch_nonzero)) if len(
+            chroma_pitch_nonzero) > 0 else 0.0
+        chroma_dominant_pitch_var = float(np.var(chroma_pitch_nonzero)) if len(
+            chroma_pitch_nonzero) > 0 else 0.0
 
         thumb_loudness_mean = float(np.nanmean(thumbnail_loudness_envelope_4hz)) if len(
             thumbnail_loudness_envelope_4hz) > 0 else 0.0
@@ -186,10 +197,18 @@ class StatisticalAggregator:
             "tempo_mean_bpm": float(thumbnail_tempo_mean),
             "music_envelope_mean": thumb_music_mean,
             "music_envelope_std": thumb_music_std,
-            "f0_envelope_mean_hz": thumb_f0_mean,
-            "f0_midi_mean": thumb_f0_midi_mean,
-            "f0_midi_variance": thumb_f0_midi_variance,
-            "f0_midi_std": thumb_f0_midi_std,
+            
+            # Chroma-based 音階特徵（1-12 scale，無 MIDI 轉換）
+            "chroma_dominant_pitch_mean": chroma_dominant_pitch_mean_calc,
+            "chroma_dominant_pitch_std": chroma_dominant_pitch_std,
+            "chroma_dominant_pitch_var": chroma_dominant_pitch_var,
+            
+            # Chroma 通量特徵
+            "chroma_flux_mean": chroma_flux_mean if chroma_flux_mean is not None else 0.0,
+            "chroma_flux_std": chroma_flux_std if chroma_flux_std is not None else 0.0,
+            "chroma_flux_var": chroma_flux_var if chroma_flux_var is not None else 0.0,
+            
+            # 響度
             "loudness_envelope_mean": thumb_loudness_mean,
             "loudness_stability": thumb_loudness_stability,
         }
@@ -203,9 +222,18 @@ class StatisticalAggregator:
             "sampling_rate_hz": 4.0,
             "array_length": len(thumbnail_music_envelope_4hz),
             "music_envelope_4hz": thumbnail_music_envelope_4hz.tolist(),
-            "f0_envelope_4hz": thumbnail_f0_envelope_4hz.tolist(),
+            "chroma_f0_envelope_4hz": thumbnail_f0_envelope_4hz.tolist(),  # Chroma 主導音高（1-12 或 0）
             "loudness_envelope_4hz": thumbnail_loudness_envelope_4hz.tolist(),
         }
+
+        if thumbnail_pyin_f0_envelope_4hz is not None:
+            validation_arrays["pyin_f0_envelope_4hz"] = thumbnail_pyin_f0_envelope_4hz.tolist()
+        
+        # NEW: 添加 Chroma 特徵到驗證陣列（如果提供）
+        if thumbnail_dominant_pitch_4hz is not None:
+            validation_arrays["chroma_dominant_pitch_4hz"] = thumbnail_dominant_pitch_4hz.tolist()
+        if thumbnail_chroma_flux_4hz is not None:
+            validation_arrays["chroma_flux_4hz"] = thumbnail_chroma_flux_4hz.tolist()
 
         # ============================================
         # 第 4 層：後設資訊 (Metadata)
@@ -224,6 +252,19 @@ class StatisticalAggregator:
         }
 
         # ============================================
+        # 第 5 層：全曲特徵（命名與縮圖驗證陣列一致）
+        # ============================================
+        full_features = {
+            "sampling_rate_hz": 4.0,
+            "music_envelope_4hz": full_music_envelope_4hz.tolist() if full_music_envelope_4hz is not None else [],
+            "chroma_f0_envelope_4hz": full_dominant_pitch_4hz.tolist() if full_dominant_pitch_4hz is not None else [],  # Chroma 主導音高
+            "pyin_f0_envelope_4hz": full_pyin_f0_envelope_4hz.tolist() if full_pyin_f0_envelope_4hz is not None else [],  # Legacy pYIN F0
+            "loudness_envelope_4hz": full_loudness_envelope_4hz.tolist() if full_loudness_envelope_4hz is not None else [],
+            "chroma_dominant_pitch_4hz": full_dominant_pitch_4hz.tolist() if full_dominant_pitch_4hz is not None else [],  # Explicit Chroma pitch (same as chroma_f0_envelope_4hz)
+            "chroma_flux_4hz": full_chroma_flux_4hz.tolist() if full_chroma_flux_4hz is not None else [],
+        }
+
+        # ============================================
         # 整合完整的 HRV 預測結構
         # ============================================
 
@@ -231,6 +272,7 @@ class StatisticalAggregator:
             "global_risk_features": global_features,
             "thumbnail_prediction_features": thumbnail_features,
             "validation_arrays": validation_arrays,
+            "full_features": full_features,
             "metadata": metadata,
         }
 

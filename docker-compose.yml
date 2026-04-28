@@ -6,31 +6,32 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${ARCAEA_DB}
+      POSTGRES_DB: ${CARCAEA_DB}
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${ARCAEA_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${CARCAEA_DB}"]
       interval: 8s
       timeout: 5s
       retries: 5
     ports:
-      - "5433:5432"
+      - "${DATABASE_HOST_PORT}:${DATABASE_IN_PORT}"
 
   server:
     build: ./server
-    container_name: arcaea_api
+    container_name: ${API_SERVER}
     ports:
-      - "3001:3000"
+      - "${API_SERVER_HOST_PORT}:${API_SERVER_IN_PORT}"
     depends_on:
       postgres:
         condition: service_healthy
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${ARCAEA_DB}
+      PORT: ${API_SERVER_IN_PORT}
       NODE_ENV: development
       AUDIO_STORAGE_PATH: ${AUDIO_STORAGE_PATH:-./storage/audio}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${DATABASE_IN_PORT}/${CARCAEA_DB}
     volumes:
       - ./server/src:/app/src
       - ./test:/app/test
@@ -44,9 +45,14 @@ services:
   
   extractor:
     build: ./extractor_server
-    container_name: ${EXTRACTOR_SERVER}
+    container_name: ${EXTRACTOR}
     ports:
-      - "3002:8000"
+      - "${EXTRACTOR_HOST_PORT}:${EXTRACTOR_IN_PORT}"
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
 
 volumes:
   postgres_data:

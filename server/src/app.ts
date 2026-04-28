@@ -4,12 +4,6 @@ import express from 'express';
 import routes from './routes';
 import { mid_logger } from './util/middleware';
 
-// const pg_pwd = process.env.POSTGRES_PASSWORD;
-// const pg_user = process.env.POSTGRES_USER;
-// const arcaea_db = process.env.ARCAEA_DB;
-// const extractor_url = process.env.EXTRACTOR_URL;
-
-
 const app = express();
 
 app.use(express.json());

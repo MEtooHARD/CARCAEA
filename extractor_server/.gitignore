@@ -1,4 +1,2 @@
-test_src
-test_res
-test_res_text
+test_*
 __pycache__

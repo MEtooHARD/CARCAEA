@@ -12,7 +12,6 @@ from .pulse_clarity import PulseClarityExtractor
 from .mode import ModeExtractor
 from .tempo import TempoExtractor
 from .cens_extractor import CENSExtractor
-from .chroma_pitch_extractor import ChromaPitchExtractor
 from typing import Dict, Any, Optional
 import asyncio
 import numpy as np
@@ -51,7 +50,6 @@ class MasterFeatureExtractor:
         self.loudness_extractor: Optional[LoudnessExtractor] = None
         self.f0_extractor: Optional[F0EnvelopeExtractor] = None
         self.cens_extractor: Optional[CENSExtractor] = None
-        self.chroma_pitch_extractor: Optional[ChromaPitchExtractor] = None
         self.thumbnail_segmenter: Optional[ThumbnailSegmenter] = None
         self.resampler: Optional[Resampler] = None
         self.aggregator: Optional[StatisticalAggregator] = None
@@ -74,7 +72,6 @@ class MasterFeatureExtractor:
                 smoothing_window_sec=1.0,
                 downsample_factor=4
             )
-            self.chroma_pitch_extractor = ChromaPitchExtractor(sr=sr, hop_length=self.hop_length)
             self.thumbnail_segmenter = ThumbnailSegmenter(sr, self.hop_length)
             self.aggregator = StatisticalAggregator(sr, self.hop_length)
 
@@ -262,33 +259,6 @@ class MasterFeatureExtractor:
         print(
             f"[Phase 3] ✓ Full song resampled: {len(music_full_4hz)} samples @ 4Hz")
 
-        # ===== NEW: 為完整曲子提取 Chroma 特徵 =====
-        print(f"[Phase 3] Extracting Chroma features for full song...")
-        chroma_full_results = self.chroma_pitch_extractor.extract_from_audio(
-            audio_mono,
-            sr=sr,
-            hop_length=self.hop_length
-        )
-        
-        dominant_pitch_full_frames = chroma_full_results["dominant_pitch_class"]
-        chroma_flux_full_frames = chroma_full_results["chroma_flux"]
-        times_chroma_full = chroma_full_results["times"]
-        
-        # 重採樣全曲 Chroma 特徵到 4Hz
-        resampler_full_chroma = Resampler(full_duration)
-        dominant_pitch_full_4hz = resampler_full_chroma.resample_envelope(
-            dominant_pitch_full_frames,
-            times_chroma_full,
-            allow_nan=False
-        )
-        chroma_flux_full_4hz = resampler_full_chroma.resample_envelope(
-            chroma_flux_full_frames,
-            times_chroma_full,
-            allow_nan=False
-        )
-        
-        print(f"[Phase 3] ✓ Full song Chroma extracted: {len(dominant_pitch_full_4hz)} samples @ 4Hz")
-
         # ===== 計算完整曲子前後 15 秒的平均值 =====
         # 4Hz 意味著每秒 4 個樣本，所以 15 秒 = 60 個樣本
         samples_per_15sec = int(15 * 4)
@@ -346,56 +316,6 @@ class MasterFeatureExtractor:
         print(
             f"  - Thumbnail loudness envelope: {len(loudness_resampled)} samples @ 4Hz | Mean: {np.mean(loudness_resampled):.2f}dB")
 
-        # ===== NEW: 用 Chroma Dominant Pitch Class 替代 pYIN F0 (解決 EDM 無法偵測) =====
-        print(f"[Phase 3] Extracting Chroma-based dominant pitch class and Chroma flux...")
-        # 提取縮圖對應的音頻片段（樣本）
-        thumb_start_sample = int(thumb_start_time * sr)
-        thumb_end_sample = int(thumb_end_time * sr)
-        audio_thumbnail = audio_mono[thumb_start_sample:thumb_end_sample]
-
-        # 使用 ChromaPitchExtractor 提取主導音級與色度通量
-        chroma_results = self.chroma_pitch_extractor.extract_from_audio(
-            audio_thumbnail, 
-            sr=sr, 
-            hop_length=self.hop_length
-        )
-        
-        # 提取 chroma 特徵
-        dominant_pitch_class_frames = chroma_results["dominant_pitch_class"]  # Shape: (num_frames,)
-        chroma_flux_frames = chroma_results["chroma_flux"]  # Shape: (num_frames,)
-        times_chroma = chroma_results["times"]  # Shape: (num_frames,)
-
-        # 重採樣到 4Hz（與其他包絡線對齐）
-        resampler_chroma = Resampler(thumbnail_duration_actual)
-        
-        # 直接重採樣主導音級（1-12 或 0）
-        dominant_pitch_4hz = resampler_chroma.resample_envelope(
-            dominant_pitch_class_frames,
-            times_chroma,
-            allow_nan=False
-        )
-        
-        # 重採樣色度通量
-        chroma_flux_4hz = resampler_chroma.resample_envelope(
-            chroma_flux_frames,
-            times_chroma,
-            allow_nan=False
-        )
-        
-        # 計算統計指標
-        chroma_flux_mean = float(np.mean(chroma_flux_4hz))
-        chroma_flux_std = float(np.std(chroma_flux_4hz))
-        chroma_flux_var = float(np.var(chroma_flux_4hz))  # NEW: 計算變異數
-        dominant_pitch_nonzero = dominant_pitch_4hz[dominant_pitch_4hz > 0]
-        dominant_pitch_mean = float(np.mean(dominant_pitch_nonzero)) if len(dominant_pitch_nonzero) > 0 else 0.0
-        
-        print(f"[Phase 3] ✓ Chroma features extracted @ 4Hz")
-        print(
-            f"  - Dominant pitch class: mean={dominant_pitch_mean:.1f} (1-12 scale)")
-        print(
-            f"  - Chroma flux: mean={chroma_flux_mean:.4f}, std={chroma_flux_std:.4f}, var={chroma_flux_var:.4f}")
-
-
         # ============================================
         # Phase 4: 生成醫療級 JSON
         # ============================================
@@ -433,24 +353,8 @@ class MasterFeatureExtractor:
 
             # 4Hz 重採樣包絡線
             thumbnail_music_envelope_4hz=music_resampled,
-            thumbnail_f0_envelope_4hz=dominant_pitch_4hz,
+            thumbnail_f0_envelope_4hz=f0_resampled,
             thumbnail_loudness_envelope_4hz=loudness_resampled,
-            thumbnail_pyin_f0_envelope_4hz=f0_resampled,
-            
-            # NEW: Chroma-based F0 特徵（用於 EDM/重金屬無法偵測的情況）
-            thumbnail_dominant_pitch_4hz=dominant_pitch_4hz,
-            thumbnail_chroma_flux_4hz=chroma_flux_4hz,
-            chroma_flux_mean=chroma_flux_mean,
-            chroma_flux_std=chroma_flux_std,
-            chroma_flux_var=chroma_flux_var,  # NEW: 變異數
-            dominant_pitch_mean=dominant_pitch_mean,
-            
-            # NEW: 全曲 4Hz 重採樣包絡線（命名與縮圖驗證陣列一致）
-            full_pyin_f0_envelope_4hz=f0_full_4hz,
-            full_dominant_pitch_4hz=dominant_pitch_full_4hz,
-            full_chroma_flux_4hz=chroma_flux_full_4hz,
-            full_music_envelope_4hz=music_full_4hz,
-            full_loudness_envelope_4hz=loudness_full_4hz,
         )
 
         # ============================================
@@ -470,6 +374,13 @@ class MasterFeatureExtractor:
             }
         }
 
+        # 建立 full_features 物件
+        full_features = {
+            "f0_envelope_4hz": f0_full_4hz.tolist(),
+            "music_envelope_4hz": music_full_4hz.tolist(),
+            "loudness_envelope_4hz": loudness_full_4hz.tolist(),
+        }
+
         print(f"[Phase 4] ✓ Aggregation complete")
         print(f"[Pipeline] ✓ Extraction completed successfully\n")
 
@@ -483,6 +394,6 @@ class MasterFeatureExtractor:
             "global_risk_features": hrv_features["global_risk_features"],
             "thumbnail_prediction_features": hrv_features["thumbnail_prediction_features"],
             "thumbnail_validation_arrays": hrv_features["validation_arrays"],
-            "full_features": hrv_features["full_features"],  # 使用 aggregator 返回的 full_features
+            "full_features": full_features,
             "smoothness": smoothness_features,
         }
