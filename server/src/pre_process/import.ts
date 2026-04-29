@@ -9,7 +9,7 @@ import { try_catch } from '../types/Result';
 import { extractThumbnail } from '../util/audio_feat/thumbnail';
 import axios from 'axios';
 import FormData from 'form-data';
-import type { ChromaMatrix } from '../types/metrix';
+import type { ChromaMatrix, Timelines } from '../types/metrix';
 
 const execAsync = promisify(exec);
 
@@ -25,7 +25,6 @@ const db = new Kysely<DB>({
     })
 })
 
-
 interface TimelineMetadata {
     filename: string;
     duration_sec: number;
@@ -34,12 +33,6 @@ interface TimelineMetadata {
     total_points: number;
     hop_length_source: number;
     extraction_time_ms: number;
-}
-
-interface Timelines {
-    loudness: number[];                // dB scale @ 4Hz
-    chroma_matrix: ChromaMatrix[];         // shape: (n_points, 12)
-    chroma_flux: number[];             // temporal change
 }
 
 interface ExtractTimelinesResponse {
@@ -155,22 +148,25 @@ async function getDuration(filePath: string): Promise<number> {
 
 // test
 (async () => {
+    const path = '/home/me2hard/Code/CARCAEA/server/src/pre_process/爛泥.mp3';
+
+    console.log('file name:', path.split('/').pop());
+
     try {
         console.log('🎵 Starting import...');
 
-        const filePath = '/home/me2hard/Code/CARCAEA/server/src/core/Synthesis.mp3';
-        console.log(`📂 Reading file: ${filePath}`);
-        const buffer = await readFile(filePath);
+        console.log(`📂 Reading file: ${path}`);
+        const buffer = await readFile(path);
         console.log(`✅ File size: ${buffer.length} bytes`);
 
         // 獲取時長
-        const duration = await getDuration(filePath);
+        const duration = await getDuration(path);
 
         // 插入 track 資訊
         console.log('💾 Inserting track info...');
         await db.insertInto('track')
             .values({
-                id: 'a',
+                id: 'b',
                 name: 'Synthesis',
                 duration_s: duration
             })
@@ -180,7 +176,7 @@ async function getDuration(filePath: string): Promise<number> {
 
         // 導入特徵
         console.log('🔊 Importing features...');
-        await import_track('/home/me2hard/Code/CARCAEA/server/src/core/Synthesis.mp3', 'a');
+        await import_track(path, 'b');
 
         console.log('✅ Import completed');
     } catch (err) {

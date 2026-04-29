@@ -6,11 +6,14 @@ CREATE TABLE track (
 
 CREATE TABLE base_audio_features (
     track_id VARCHAR(64) PRIMARY KEY REFERENCES track(id) ON DELETE CASCADE,
+    -- 
     sr_hz INT NOT NULL,
     len INT NOT NULL,
+    -- 
     chroma_matrix FLOAT8 [] [] NOT NULL,
     chroma_flux FLOAT8 [] NOT NULL,
     loudness_db FLOAT8 [] NOT NULL,
+    -- 
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -24,51 +27,73 @@ CREATE TABLE track_platform (
     platform_id VARCHAR(255) NOT NULL
 );
 
-CREATE TYPE mode AS ENUM ('major', 'minor');
-
-CREATE TYPE tempo_category AS ENUM ('slow', 'moderate', 'fast');
-
-CREATE TABLE track_global_risks (
+CREATE TABLE track_thumbnail (
     track_id VARCHAR(64) PRIMARY KEY REFERENCES track(id) ON DELETE CASCADE,
-    mode mode NOT NULL,
-    mode_score FLOAT8 NOT NULL,
-    pulse_clarity FLOAT8 NOT NULL,
-    tempo_category tempo_category NOT NULL,
-    tempo_bpm FLOAT8 NOT NULL,
-    tempo_score FLOAT8 NOT NULL,
-    dynamic_range_db FLOAT8 NOT NULL,
-    mean_loudness_db FLOAT8 NOT NULL,
-    mean_f0_hz FLOAT8 NOT NULL,
-    f0_range_hz FLOAT8 NOT NULL
-);
-
-CREATE TABLE track_predictions_meta (
-    track_id VARCHAR(64) PRIMARY KEY REFERENCES track(id) ON DELETE CASCADE,
-    mode_mean FLOAT8 NOT NULL,
-    pulse_clarity_mean FLOAT8 NOT NULL,
-    tempo_mean_bpm FLOAT8 NOT NULL,
-    global_confidence FLOAT8 NOT NULL,
-    thumbnail_start FLOAT8 NOT NULL,
-    thumbnail_end FLOAT8 NOT NULL,
-    thumbnail_duration FLOAT8 NOT NULL,
-    music_envelope_mean FLOAT8 NOT NULL,
-    music_envelope_std FLOAT8 NOT NULL,
-    f0_envelope_mean_hz FLOAT8 NOT NULL,
-    f0_midi_mean FLOAT8 NOT NULL,
-    f0_midi_variance FLOAT8 NOT NULL,
-    f0_midi_std FLOAT8 NOT NULL,
-    loudness_envelope_mean FLOAT8 NOT NULL,
-    loudness_stability FLOAT8 NOT NULL,
-    smoothness JSONB NOT NULL -- {head: {f0_mean, music_mean, loudness_mean}, tail: {f0_mean, music_mean, loudness_mean}}
-);
-
-CREATE TABLE track_validation_arrays (
-    track_id VARCHAR(64) PRIMARY KEY REFERENCES track(id) ON DELETE CASCADE,
-    sampling_rate_hz FLOAT8 NOT NULL,
     array_length INT NOT NULL,
-    music_envelope_4hz FLOAT8 [] NOT NULL,
-    f0_envelope_hz_4hz FLOAT8 [] NOT NULL,
-    loudness_envelope_4hz FLOAT8 [] NOT NULL
+    -- 
+    start_sec FLOAT8 NOT NULL,
+    start_frame INT NOT NULL,
+    end_sec FLOAT8 NOT NULL,
+    end_frame INT NOT NULL,
+    -- 
+    score FLOAT8 NOT NULL,
+    coverage FLOAT8 NOT NULL,
+    -- 
+    loudness_4hz FLOAT8 [] NOT NULL,
+    chroma_matrix_4hz FLOAT8 [] [] NOT NULL,
+    chroma_flux_4hz FLOAT8 [] NOT NULL
+);
+
+CREATE TABLE track_thumbnail_statistics (
+    track_id VARCHAR(64) PRIMARY KEY REFERENCES track(id) ON DELETE CASCADE,
+    -- 
+    tempo_bpm FLOAT8 NOT NULL,
+    mode FLOAT8 NOT NULL,
+    pulse_clarity FLOAT8 NOT NULL,
+    -- 
+    loudness_mean FLOAT8 NOT NULL,
+    loudness_median FLOAT8 NOT NULL,
+    loudness_std FLOAT8 NOT NULL,
+    loudness_min FLOAT8 NOT NULL,
+    loudness_max FLOAT8 NOT NULL,
+    loudness_skewness FLOAT8 NOT NULL,
+    loudness_kurtosis FLOAT8 NOT NULL,
+    -- 
+    chroma_flux_mean FLOAT8 NOT NULL,
+    chroma_flux_median FLOAT8 NOT NULL,
+    chroma_flux_std FLOAT8 NOT NULL,
+    chroma_flux_min FLOAT8 NOT NULL,
+    chroma_flux_max FLOAT8 NOT NULL,
+    chroma_flux_skewness FLOAT8 NOT NULL,
+    chroma_flux_kurtosis FLOAT8 NOT NULL,
+    -- 
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE track_global_statistics (
+    track_id VARCHAR(64) PRIMARY KEY REFERENCES track(id) ON DELETE CASCADE,
+    -- 
+    tempo_bpm FLOAT8 NOT NULL,
+    mode FLOAT8 NOT NULL,
+    pulse_clarity FLOAT8 NOT NULL,
+    -- 
+    loudness_mean FLOAT8 NOT NULL,
+    loudness_median FLOAT8 NOT NULL,
+    loudness_std FLOAT8 NOT NULL,
+    loudness_min FLOAT8 NOT NULL,
+    loudness_max FLOAT8 NOT NULL,
+    loudness_skewness FLOAT8 NOT NULL,
+    loudness_kurtosis FLOAT8 NOT NULL,
+    -- 
+    chroma_flux_mean FLOAT8 NOT NULL,
+    chroma_flux_median FLOAT8 NOT NULL,
+    chroma_flux_std FLOAT8 NOT NULL,
+    chroma_flux_min FLOAT8 NOT NULL,
+    chroma_flux_max FLOAT8 NOT NULL,
+    chroma_flux_skewness FLOAT8 NOT NULL,
+    chroma_flux_kurtosis FLOAT8 NOT NULL,
+    -- 
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE track_hrv_eff_predict (

@@ -99,12 +99,17 @@ export interface TrackPredictionsMeta {
   track_id: string;
 }
 
-export interface TrackValidationArrays {
+export interface TrackThumbnail {
   array_length: number;
-  f0_envelope_hz_4hz: number[];
-  loudness_envelope_4hz: number[];
-  music_envelope_4hz: number[];
-  sampling_rate_hz: number;
+  chroma_flux_4hz: number[];
+  chroma_matrix_4hz: number[][];
+  coverage: number;
+  end_frame: number;
+  end_sec: number;
+  loudness_4hz: number[];
+  score: number;
+  start_frame: number;
+  start_sec: number;
   track_id: string;
 }
 
@@ -121,6 +126,6 @@ export interface DB {
   track_hrv_eff_predict: TrackHrvEffPredict;
   track_platform: TrackPlatform;
   track_predictions_meta: TrackPredictionsMeta;
-  track_validation_arrays: TrackValidationArrays;
+  track_thumbnail: TrackThumbnail;
   users: Users;
 }

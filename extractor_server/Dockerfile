@@ -48,14 +48,14 @@ COPY . .
 # USER appuser
 
 # 暴露端口
-EXPOSE 8000
+EXPOSE 5000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:5000/health || exit 1
 
 # 启动应用
-# - 0.0.0.0:8000: 监听所有网卡的 8000 端口
+# - 0.0.0.0:5000: 监听所有网卡的 5000 端口
 # - --workers 1: 使用 1 个 worker（无状态设计，可根据 CPU 核心数增加）
 # - --loop uvloop: 使用 uvloop 增强事件循环性能
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--loop", "uvloop"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000", "--loop", "uvloop"]

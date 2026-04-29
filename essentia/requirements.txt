@@ -1,7 +1,0 @@
-numpy<2
-essentia-tensorflow
-fastapi
-uvicorn[standard]
-python-multipart
-librosa
-soundfile

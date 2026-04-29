@@ -9,8 +9,8 @@
  * 5. 滑動視窗尋找縮圖 (30sec Thumbnail Extraction)
  */
 
-import type { ChromaMatrix } from "../core/import";
-import { diagonal_smooth, L2, MinMax } from "./math";
+import type { ChromaMatrix } from "../../types/metrix";
+import { diagonal_smooth, L2, MinMax } from "../math";
 
 // ============================================================================
 // 📋 類型定義
@@ -114,7 +114,11 @@ export function computeFitnessScore(
 
     const totalCells = windowSize * N;
     const coverage = activeFrames / (totalCells + 1e-10);
-    return { score: totalScore, coverage };
+
+    // 歸一化分數到 [0, 1]：SSM 是 N×N，窗口在 N 行中取 windowSize 行，所以最大值是 windowSize * N
+    const normalizedScore = totalScore / (windowSize * N);
+
+    return { score: normalizedScore, coverage };
 }
 
 /** 用滑動視窗在 SSM 上尋找最高分的固定長度片段 */
