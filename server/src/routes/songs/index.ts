@@ -5,8 +5,8 @@ import { mid_logger } from '../../util/middleware';
 
 const router = Router();
 
-// router.post('/import', mid_logger('/import'), async (req, res) => {
+router.post('/recommend', mid_logger('/recommend'), async (req, res) => {
 
-// });
+});
 
 export default router;

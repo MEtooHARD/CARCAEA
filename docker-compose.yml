@@ -29,17 +29,11 @@ services:
     environment:
       PORT: ${API_SERVER_IN_PORT}
       NODE_ENV: development
-      AUDIO_STORAGE_PATH: ${AUDIO_STORAGE_PATH:-./storage/audio}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${DATABASE_IN_PORT}/${CARCAEA_DB}
     volumes:
       - ./server/src:/app/src
       - ./test:/app/test
-    # (deprecated)
-    # extractor:
-    #   build: ./essentia
-    #   container_name: ${EXTRACTOR}
-    # ports:
-    #   - "5000:5000"
+      - ${AUDIO_STORAGE_PATH}:/app/audio_storage
 
   extractor:
     build: ./extractor_server
@@ -51,6 +45,8 @@ services:
         limits:
           cpus: '4'
           memory: 8G
+    volumes:
+      - ${AUDIO_STORAGE_PATH}:/app/audio_storage
 
 volumes:
   postgres_data:
