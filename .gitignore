@@ -10,6 +10,7 @@ server/model_metadata/
 test/_aud/
 test/audio_samples/
 server/aud_tmp/
+server/src/pre_process/aud_src
 
 backup.sql
 backup.dump

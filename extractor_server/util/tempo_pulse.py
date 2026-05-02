@@ -180,19 +180,19 @@ def extract_tempo_and_pulse(
         audio_segment = audio_mono
         duration_sec = len(audio_mono) / sr
     
-    logger.info(f"Extracted segment: {duration_sec:.2f}s")
+    logger.debug(f"Extracted segment: {duration_sec:.2f}s")
     
-    # [1] 計算 Onset Strength Curve
+    # [1] 计算 Onset Strength Curve
     onset_env = compute_onset_strength(audio_segment, sr, hop_length)
-    logger.info(f"Onset curve length: {len(onset_env)} frames")
+    logger.debug(f"Onset curve length: {len(onset_env)} frames")
     
     # [2] 提取 Tempo
     tempo_bpm, tempo_confidence = extract_tempo(onset_env, sr, hop_length)
-    logger.info(f"Tempo: {tempo_bpm:.1f} BPM (confidence: {tempo_confidence:.3f})")
+    logger.debug(f"Tempo: {tempo_bpm:.1f} BPM (confidence: {tempo_confidence:.3f})")
     
-    # [3] 計算 Pulse Clarity
+    # [3] 计算 Pulse Clarity
     pulse_clarity = compute_pulse_clarity(onset_env, sr, hop_length)
-    logger.info(f"Pulse Clarity: {pulse_clarity:.3f}")
+    logger.debug(f"Pulse Clarity: {pulse_clarity:.3f}")
     
     return {
         'tempo_bpm': float(tempo_bpm),

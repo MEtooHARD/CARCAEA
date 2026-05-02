@@ -1,26 +1,7 @@
 services:
-  postgres:
-    build: ./postgres
-    container_name: ${DATABASE}
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${CARCAEA_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${CARCAEA_DB}" ]
-      interval: 8s
-      timeout: 5s
-      retries: 5
-    ports:
-      - "${DATABASE_HOST_PORT}:${DATABASE_IN_PORT}"
-
   server:
     build: ./server
     container_name: ${API_SERVER}
-    ports:
-      - "${API_SERVER_HOST_PORT}:${API_SERVER_IN_PORT}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -34,19 +15,33 @@ services:
       - ./server/src:/app/src
       - ./test:/app/test
       - ${AUDIO_STORAGE_PATH}:/app/audio_storage
-
+    ports:
+      - "${API_SERVER_HOST_PORT}:${API_SERVER_IN_PORT}"
   extractor:
     build: ./extractor_server
     container_name: ${EXTRACTOR}
-    ports:
-      - "${EXTRACTOR_HOST_PORT}:${EXTRACTOR_IN_PORT}"
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: 8G
     volumes:
       - ${AUDIO_STORAGE_PATH}:/app/audio_storage
+      - ${DB_DUMP}:/app/db_dump
+    ports:
+      - "${EXTRACTOR_HOST_PORT}:${EXTRACTOR_IN_PORT}"
+  postgres:
+    build: ./postgres
+    container_name: ${DATABASE}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${CARCAEA_DB}" ]
+      interval: 8s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${CARCAEA_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ${DB_DUMP}:/app/db_dump
+    ports:
+      - "${DATABASE_HOST_PORT}:${DATABASE_IN_PORT}"
 
 volumes:
   postgres_data:

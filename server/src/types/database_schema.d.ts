@@ -21,56 +21,119 @@ export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
-export type Mode = "major" | "minor";
-
-export type Platform = "jamendo";
-
-export type TempoCategory = "fast" | "moderate" | "slow";
+export type Platform = "jamendo" | "local";
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-export interface BaseAudioFeatures {
-  chroma_flux: number[];
-  chroma_matrix: number[][];
-  len: number;
-  loudness_db: number[];
-  sr_hz: number;
+export interface AbortRecLog {
+  alternate_track_id: string | null;
+  id: Generated<number>;
+  original_track_id: string;
+  reclog_id: number | null;
   timestamp: Generated<Timestamp>;
-  track_id: string;
+  user_id: string;
 }
 
 export interface ListenHistory {
+  id: Generated<number>;
   timestamp: Generated<Timestamp>;
   track_id: string;
   user_id: string;
 }
 
+export interface Predictions {
+  id: Generated<number>;
+  listen_end_sec: number;
+  listen_start_sec: number;
+  r_hf_literal: number;
+  r_hr_literal: number;
+  r_lf_literal: number;
+  r_mental_status: string | null;
+  r_pnn50_literal: number;
+  r_rmssd_literal: number;
+  r_sdnn_literal: number;
+  reclog_id: number | null;
+  timestamp: Generated<Timestamp>;
+  track_id: string;
+  u_hf_literal: number;
+  u_hr_literal: number;
+  u_lf_literal: number;
+  u_mental_status: string | null;
+  u_pnn50_literal: number;
+  u_rmssd_literal: number;
+  u_sdnn_literal: number;
+  user_id: string;
+}
+
+export interface RecommendationLog {
+  candidate_track_ids: string[];
+  id: Generated<number>;
+  timestamp: Generated<Timestamp>;
+  u_hrv_literal_at_request: Json;
+  user_id: string;
+}
+
 export interface Track {
+  created_at: Generated<Timestamp>;
   duration_s: number;
+  hidden: Generated<boolean>;
   id: string;
   name: string;
 }
 
-export interface TrackGlobalRisks {
-  dynamic_range_db: number;
-  f0_range_hz: number;
-  mean_f0_hz: number;
-  mean_loudness_db: number;
-  mode: Mode;
-  mode_score: number;
+export interface TrackAudioFeatures {
+  chroma_flux_mean: number;
+  chroma_flux_skewness: number;
+  chroma_flux_std: number;
+  loud_mean: number;
+  loud_skewness: number;
+  loud_std: number;
+  mode: number;
   pulse_clarity: number;
-  tempo_bpm: number;
-  tempo_category: TempoCategory;
-  tempo_score: number;
+  tempo: number;
+  tempo_std: number;
+  thumbnail_chroma_flux_mean: number;
+  thumbnail_chroma_flux_skewness: number;
+  thumbnail_chroma_flux_std: number;
+  thumbnail_coverage: number;
+  thumbnail_end_sec: number;
+  thumbnail_loud_mean: number;
+  thumbnail_loud_skewness: number;
+  thumbnail_loud_std: number;
+  thumbnail_mode: number;
+  thumbnail_pulse_clarity: number;
+  thumbnail_score: number;
+  thumbnail_start_sec: number;
+  thumbnail_tempo: number;
+  thumbnail_tempo_std: number;
+  timestamp: Generated<Timestamp>;
   track_id: string;
 }
 
-export interface TrackHrvEffPredict {
-  hr: number;
-  lfhf: number;
-  rmssd: number;
+export interface TrackFeatEnvelopes {
+  env_chroma_flux: number[];
+  env_chroma_matrix: number[][];
+  env_loudness_db: number[];
+  env_mode: number[];
+  env_pulse_clarity: number[];
+  env_tempo: number[];
+  loud_chroma_sample_rate: number;
   timestamp: Generated<Timestamp>;
   track_id: string;
+}
+
+export interface TrackMetadata {
+  acousticelectric: boolean | null;
+  acoustid: string | null;
+  artist_name: string | null;
+  genres: Generated<string[]>;
+  instruments: Generated<string[]>;
+  mb_artist_id: string | null;
+  mb_recording_id: string | null;
+  tags_source: string | null;
+  track_id: string;
+  vartags: Generated<string[]>;
+  vocalinstrumental: boolean | null;
 }
 
 export interface TrackPlatform {
@@ -79,53 +142,53 @@ export interface TrackPlatform {
   track_id: string;
 }
 
-export interface TrackPredictionsMeta {
-  f0_envelope_mean_hz: number;
-  f0_midi_mean: number;
-  f0_midi_std: number;
-  f0_midi_variance: number;
-  global_confidence: number;
-  loudness_envelope_mean: number;
-  loudness_stability: number;
-  mode_mean: number;
-  music_envelope_mean: number;
-  music_envelope_std: number;
-  pulse_clarity_mean: number;
-  smoothness: Json;
-  tempo_mean_bpm: number;
-  thumbnail_duration: number;
-  thumbnail_end: number;
-  thumbnail_start: number;
-  track_id: string;
-}
-
-export interface TrackThumbnail {
-  array_length: number;
-  chroma_flux_4hz: number[];
-  chroma_matrix_4hz: number[][];
-  coverage: number;
-  end_frame: number;
-  end_sec: number;
-  loudness_4hz: number[];
-  score: number;
-  start_frame: number;
-  start_sec: number;
-  track_id: string;
+export interface UserHrvBaseline {
+  hf_literal: number;
+  hf_std: number;
+  hr_literal: number;
+  hr_std: number;
+  lf_literal: number;
+  lf_std: number;
+  pnn50_literal: number;
+  pnn50_std: number;
+  rmssd_literal: number;
+  rmssd_std: number;
+  sdnn_literal: number;
+  sdnn_std: number;
+  user_id: string;
 }
 
 export interface Users {
+  created_at: Generated<Timestamp>;
+  hidden: Generated<boolean>;
   id: string;
   name: string;
 }
 
+export interface XgbModels {
+  active: Generated<boolean>;
+  id: Generated<number>;
+  model_hf: Json;
+  model_hr: Json;
+  model_lf: Json;
+  model_pnn50: Json;
+  model_rmssd: Json;
+  model_sdnn: Json;
+  timestamp: Generated<Timestamp>;
+  user_id: string | null;
+}
+
 export interface DB {
-  base_audio_features: BaseAudioFeatures;
+  abort_rec_log: AbortRecLog;
   listen_history: ListenHistory;
+  predictions: Predictions;
+  recommendation_log: RecommendationLog;
   track: Track;
-  track_global_risks: TrackGlobalRisks;
-  track_hrv_eff_predict: TrackHrvEffPredict;
+  track_audio_features: TrackAudioFeatures;
+  track_feat_envelopes: TrackFeatEnvelopes;
+  track_metadata: TrackMetadata;
   track_platform: TrackPlatform;
-  track_predictions_meta: TrackPredictionsMeta;
-  track_thumbnail: TrackThumbnail;
+  user_hrv_baseline: UserHrvBaseline;
   users: Users;
+  xgb_models: XgbModels;
 }

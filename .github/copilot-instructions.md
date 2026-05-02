@@ -1,0 +1,1 @@
+# 更新 /extractor_server 的路由時，請確保回頭更新 /extractor_server/routes.py 中的路由匯入和 __all__ 列表，以保持一致性。以及 /server/types/audio-extractor-api.ts 中的 API 定義。

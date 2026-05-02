@@ -3,8 +3,8 @@
 所有子路由在 routes/ 目录中管理
 """
 
-from routes import timelines_router, tempo_pulse_router
+# 从 routes 包导入聚合路由器
+from routes import router
 
-# 导出所有路由器供 app.py 使用
-__all__ = ["timelines_router", "tempo_pulse_router"]
+__all__ = ["router"]
 

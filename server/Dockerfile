@@ -13,7 +13,7 @@ RUN npm install
 # Copy source code
 COPY src ./src
 
-COPY index.html ./
+COPY fix-codegen.mjs ./
 
 # Create audio temp directory
 RUN mkdir -p /app/aud_tmp

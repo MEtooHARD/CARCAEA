@@ -122,7 +122,7 @@ export interface ExtractTimelinesResponse {
 }
 
 // ============================================
-// 3. 节奏和脉冲清晰度端点
+// 3. 节奏和脉冲清晰度端点（单一时刻）
 // ============================================
 
 export interface ExtractTempoPulseRequest {
@@ -141,6 +141,31 @@ export interface ExtractTempoPulseResponse {
         filename: string;
         start_sec: number;
         end_sec: number;
+        extraction_time_ms: number;
+    };
+}
+
+// ============================================
+// 4. 脉冲清晰度时间线端点（滑动窗口）
+// ============================================
+
+export interface ExtractPulseClarityTimelineRequest {
+    file?: File | Blob;
+    filePath?: string;
+    window_size: number; // 窗口大小（秒）
+    hop_length: number; // 步长（秒）
+}
+
+export interface ExtractPulseClarityTimelineResponse {
+    pulse_clarity_timeline: number[];
+    tempo_timeline: number[];
+    tempo_confidence_timeline: number[];
+    window_size_sec: number;
+    hop_length_sec: number;
+    duration_sec: number;
+    num_windows: number;
+    metadata: {
+        filename: string;
         extraction_time_ms: number;
     };
 }
@@ -169,6 +194,17 @@ export interface IExtractorClient {
     extractTempoPulse(
         request: ExtractTempoPulseRequest
     ): Promise<ExtractTempoPulseResponse>;
+
+    /**
+     * 提取脉冲清晰度时间线（滑动窗口）
+     * 返回整个音频全曲的 pulse_clarity 和 tempo 数组
+     * - pulse_clarity_timeline: [0, 1] 清晰度数组
+     * - tempo_timeline: BPM 数组
+     * - tempo_confidence_timeline: [0, 1] 置信度数组
+     */
+    extractPulseClarityTimeline(
+        request: ExtractPulseClarityTimelineRequest
+    ): Promise<ExtractPulseClarityTimelineResponse>;
 }
 
 // ============================================
@@ -250,5 +286,42 @@ export class ExtractorAPIClient implements IExtractorClient {
         }
 
         return response.json() as Promise<ExtractTempoPulseResponse>;
+    }
+
+    async extractPulseClarityTimeline(
+        request: ExtractPulseClarityTimelineRequest
+    ): Promise<ExtractPulseClarityTimelineResponse> {
+        // 验证参数
+        if (!request.file && !request.filePath) {
+            throw new Error("Either 'file' or 'filePath' must be provided");
+        }
+
+        const formData = new FormData();
+
+        if (request.file) {
+            formData.append("file", request.file);
+        } else {
+            formData.append("file_path", request.filePath!);
+        }
+
+        formData.append("window_size", request.window_size.toString());
+        formData.append("hop_length", request.hop_length.toString());
+
+        const response = await fetch(
+            `${this.baseUrl}/extract/pulse_clarity_timeline`,
+            {
+                method: "POST",
+                body: formData,
+            }
+        );
+
+        if (!response.ok) {
+            const error: any = await response.json();
+            throw new Error(
+                `Extract pulse clarity timeline failed: ${error.detail || response.statusText}`
+            );
+        }
+
+        return response.json() as Promise<ExtractPulseClarityTimelineResponse>;
     }
 }

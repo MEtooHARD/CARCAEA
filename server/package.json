@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "tsx src/index.ts",
-    "generate:db": "kysely-codegen --dialect postgres --out-file ./src/types/database_schema.d.ts",
+    "generate:db": "kysely-codegen --dialect postgres --out-file ./src/types/database_schema.d.ts && node fix-codegen.mjs",
     "predictors:report": "tsx src/scripts/predictors_report.ts",
     "import:tracks": "tsx src/import_track.ts"
   },
@@ -24,6 +24,8 @@
   },
   "dependencies": {
     "axios": "^1.15.2",
+    "canvas": "^3.2.3",
+    "chart.js": "^4.5.1",
     "dotenv": "^16.0.0",
     "express": "^5.2.1",
     "kysely": "^0.28.16",
