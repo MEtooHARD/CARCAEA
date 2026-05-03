@@ -7,7 +7,7 @@
     "start": "tsx src/index.ts",
     "generate:db": "kysely-codegen --dialect postgres --out-file ./src/types/database_schema.d.ts && node fix-codegen.mjs",
     "predictors:report": "tsx src/scripts/predictors_report.ts",
-    "import:tracks": "tsx src/import_track.ts"
+    "import:tracks": "tsx src/core/import/main.ts"
   },
   "type": "module",
   "keywords": [],
@@ -28,12 +28,12 @@
     "chart.js": "^4.5.1",
     "dotenv": "^16.0.0",
     "express": "^5.2.1",
+    "get-audio-duration": "^4.0.1",
     "kysely": "^0.28.16",
     "kysely-codegen": "^0.20.0",
-    "musicmetadata": "^2.0.5",
+    "music-metadata": "^11.12.3",
     "pg": "^8.16.3",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
-    "ytdl-core": "^4.11.5"
+    "swagger-ui-express": "^5.0.1"
   }
 }

@@ -5,6 +5,8 @@
 
 import type { ColumnType } from "kysely";
 
+export type DaytimeSection = "afternoon" | "evening" | "morning" | "night";
+
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
@@ -41,7 +43,9 @@ export interface ListenHistory {
   user_id: string;
 }
 
-export interface Predictions {
+export interface PhysicalFeedback {
+  baseline_id: number | null;
+  daytime_section: DaytimeSection;
   id: Generated<number>;
   listen_end_sec: number;
   listen_start_sec: number;
@@ -77,6 +81,7 @@ export interface Track {
   created_at: Generated<Timestamp>;
   duration_s: number;
   hidden: Generated<boolean>;
+  hidden_reason: string | null;
   id: string;
   name: string;
 }
@@ -114,7 +119,6 @@ export interface TrackFeatEnvelopes {
   env_chroma_flux: number[];
   env_chroma_matrix: number[][];
   env_loudness_db: number[];
-  env_mode: number[];
   env_pulse_clarity: number[];
   env_tempo: number[];
   loud_chroma_sample_rate: number;
@@ -143,10 +147,12 @@ export interface TrackPlatform {
 }
 
 export interface UserHrvBaseline {
+  daytime_section: DaytimeSection;
   hf_literal: number;
   hf_std: number;
   hr_literal: number;
   hr_std: number;
+  id: Generated<number>;
   lf_literal: number;
   lf_std: number;
   pnn50_literal: number;
@@ -155,12 +161,14 @@ export interface UserHrvBaseline {
   rmssd_std: number;
   sdnn_literal: number;
   sdnn_std: number;
-  user_id: string;
+  timestamp: Generated<Timestamp>;
+  user_id: string | null;
 }
 
 export interface Users {
   created_at: Generated<Timestamp>;
   hidden: Generated<boolean>;
+  hidden_reason: string | null;
   id: string;
   name: string;
 }
@@ -181,7 +189,7 @@ export interface XgbModels {
 export interface DB {
   abort_rec_log: AbortRecLog;
   listen_history: ListenHistory;
-  predictions: Predictions;
+  physical_feedback: PhysicalFeedback;
   recommendation_log: RecommendationLog;
   track: Track;
   track_audio_features: TrackAudioFeatures;

@@ -6,6 +6,7 @@ CREATE TABLE users (
     id VARCHAR(64) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     hidden BOOLEAN NOT NULL DEFAULT FALSE,
+    hidden_reason VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -16,6 +17,7 @@ CREATE TABLE track (
     name VARCHAR(255) NOT NULL,
     duration_s FLOAT8 NOT NULL,
     hidden BOOLEAN NOT NULL DEFAULT FALSE,
+    hidden_reason VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -90,7 +92,6 @@ CREATE TABLE track_feat_envelopes (
     env_chroma_matrix FLOAT8 [] [] NOT NULL,
     -- 
     env_tempo FLOAT8 [] NOT NULL,
-    env_mode FLOAT8 [] NOT NULL,
     env_pulse_clarity FLOAT8 [] NOT NULL
 );
 
@@ -157,7 +158,7 @@ CREATE TABLE abort_rec_log (
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE predictions (
+CREATE TABLE physical_feedback (
     -- basic info
     id SERIAL PRIMARY KEY,
     user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -166,6 +167,7 @@ CREATE TABLE predictions (
     listen_end_sec FLOAT8 NOT NULL,
     reclog_id INT REFERENCES recommendation_log(id) ON DELETE CASCADE,
     baseline_id INT REFERENCES user_hrv_baseline(id) ON DELETE CASCADE,
+    daytime_section daytime_section NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     -- user status
     u_mental_status VARCHAR(32),
@@ -187,7 +189,7 @@ CREATE TABLE predictions (
 
 CREATE INDEX ON listen_history (user_id, timestamp DESC);
 
-CREATE INDEX ON predictions (user_id, timestamp DESC);
+CREATE INDEX ON physical_feedback (user_id, timestamp DESC);
 
 CREATE INDEX ON recommendation_log (user_id, timestamp DESC);
 

@@ -1,0 +1,330 @@
+import { Kysely, PostgresDialect, sql } from 'kysely';
+import { Pool } from 'pg';
+import type { Insertable, Selectable } from 'kysely';
+import type { DB, TrackAudioFeatures, TrackFeatEnvelopes, TrackMetadata, UserHrvBaseline, PhysicalFeedback, XgbModels } from '../types/database_schema';
+import { try_catch, type Result } from '../types/Result';
+import { postgres_user, postgres_password, postgres_db_name, database_name, database_port } from '../config';
+
+// ============================================================================
+// Kysely instance — use DATABASE_URL if provided (docker), else fallback to parts
+// ============================================================================
+
+const pool = new Pool({
+    host: database_name,
+    port: Number(database_port) || 5432,
+    database: postgres_db_name,
+    user: postgres_user,
+    password: postgres_password,
+});
+
+export const db = new Kysely<DB>({ dialect: new PostgresDialect({ pool }) });
+
+// ============================================================================
+// Domain: Tracks
+// ============================================================================
+
+const Tracks = {
+
+    async find_by_id(track_id: string) {
+        return try_catch(
+            db.selectFrom('track')
+                .where('track_id' as any, '=', track_id)
+                .selectAll()
+                .executeTakeFirst()
+        );
+    },
+
+    async find_by_platform(platform: 'jamendo' | 'local', platform_id: string) {
+        return try_catch(
+            db.selectFrom('track_platform')
+                .innerJoin('track', 'track.id', 'track_platform.track_id')
+                .where('track_platform.platform', '=', platform)
+                .where('track_platform.platform_id', '=', platform_id)
+                .select(['track.id', 'track.name', 'track.duration_s', 'track.hidden'])
+                .executeTakeFirst()
+        );
+    },
+
+    async insert(id: string, name: string, duration_s: number): Promise<Result<void>> {
+        return try_catch(
+            db.insertInto('track')
+                .values({ id, name, duration_s })
+                .onConflict(oc => oc.doNothing())
+                .execute()
+                .then(() => undefined)
+        );
+    },
+
+    async insert_platform(track_id: string, platform: 'jamendo' | 'local', platform_id: string): Promise<Result<void>> {
+        return try_catch(
+            db.insertInto('track_platform')
+                .values({ track_id, platform, platform_id })
+                .onConflict(oc => oc.doNothing())
+                .execute()
+                .then(() => undefined)
+        );
+    },
+
+    async upsert_metadata(track_id: string, meta: Omit<Insertable<TrackMetadata>, 'track_id'>): Promise<Result<void>> {
+        return try_catch(
+            db.insertInto('track_metadata')
+                .values({ track_id, ...meta })
+                .onConflict(oc => oc.column('track_id').doUpdateSet(meta as any))
+                .execute()
+                .then(() => undefined)
+        );
+    },
+
+    async upsert_features(track_id: string, features: Omit<Insertable<TrackAudioFeatures>, 'track_id'>): Promise<Result<void>> {
+        return try_catch(
+            db.insertInto('track_audio_features')
+                .values({ track_id, ...features })
+                .onConflict(oc => oc.column('track_id').doUpdateSet(features as any))
+                .execute()
+                .then(() => undefined)
+        );
+    },
+
+    async upsert_envelopes(track_id: string, envelopes: Omit<Insertable<TrackFeatEnvelopes>, 'track_id'>): Promise<Result<void>> {
+        return try_catch(
+            db.insertInto('track_feat_envelopes')
+                .values({ track_id, ...envelopes })
+                .onConflict(oc => oc.column('track_id').doUpdateSet(envelopes as any))
+                .execute()
+                .then(() => undefined)
+        );
+    },
+
+    async list_with_features(limit = 100, offset = 0) {
+        return try_catch(
+            db.selectFrom('track')
+                .innerJoin('track_audio_features', 'track_audio_features.track_id', 'track.id')
+                .where('track.hidden', '=', false)
+                .selectAll()
+                .limit(limit)
+                .offset(offset)
+                .execute()
+        );
+    },
+};
+
+// ============================================================================
+// Domain: Users
+// ============================================================================
+
+const Users = {
+
+    async find(user_id: string) {
+        return try_catch(
+            db.selectFrom('users')
+                .where('id', '=', user_id)
+                .selectAll()
+                .executeTakeFirst()
+        );
+    },
+
+    async insert(id: string, name: string): Promise<Result<void>> {
+        return try_catch(
+            db.insertInto('users')
+                .values({ id, name })
+                .onConflict(oc => oc.doNothing())
+                .execute()
+                .then(() => undefined)
+        );
+    },
+
+    async update(id: string, name: string): Promise<Result<void>> {
+        return try_catch(
+            db.updateTable('users')
+                .set({ name })
+                .where('id', '=', id)
+                .execute()
+                .then(() => undefined)
+        );
+    },
+
+    async insert_baseline(
+        user_id: string,
+        baseline: Omit<Insertable<UserHrvBaseline>, 'user_id'>
+    ): Promise<Result<number>> {
+        return try_catch(
+            db.insertInto('user_hrv_baseline')
+                .values({ user_id, ...baseline })
+                .returning('id')
+                .executeTakeFirstOrThrow()
+                .then(r => r.id)
+        );
+    },
+
+    async get_latest_baseline(user_id: string, daytime_section: string) {
+        return try_catch(
+            db.selectFrom('user_hrv_baseline')
+                .where('user_id', '=', user_id)
+                .where('daytime_section', '=', daytime_section as any)
+                .orderBy('timestamp', 'desc')
+                .selectAll()
+                .executeTakeFirst()
+        );
+    },
+};
+
+// ============================================================================
+// Domain: Models
+// ============================================================================
+
+const Models = {
+
+    async get_active(user_id: string): Promise<Result<Selectable<XgbModels> | undefined>> {
+        return try_catch(
+            db.selectFrom('xgb_models')
+                .where('user_id', '=', user_id)
+                .where('active', '=', true)
+                .orderBy('timestamp', 'desc')
+                .selectAll()
+                .executeTakeFirst()
+        );
+    },
+
+    async save(
+        user_id: string,
+        models: Pick<Insertable<XgbModels>, 'model_hr' | 'model_rmssd' | 'model_sdnn' | 'model_pnn50' | 'model_lf' | 'model_hf'>
+    ): Promise<Result<number>> {
+        return try_catch(
+            db.transaction().execute(async (trx) => {
+                // deactivate all previous models for this user
+                await trx.updateTable('xgb_models')
+                    .set({ active: false })
+                    .where('user_id', '=', user_id)
+                    .execute();
+
+                const inserted = await trx.insertInto('xgb_models')
+                    .values({ user_id, active: true, ...models })
+                    .returning('id')
+                    .executeTakeFirstOrThrow();
+
+                return inserted.id;
+            })
+        );
+    },
+};
+
+// ============================================================================
+// Domain: Recommendations & Predictions
+// ============================================================================
+
+const Recommend = {
+
+    async log(
+        user_id: string,
+        candidate_track_ids: string[],
+        u_hrv_literal_at_request: object
+    ): Promise<Result<number>> {
+        return try_catch(
+            db.insertInto('recommendation_log')
+                .values({
+                    user_id,
+                    candidate_track_ids,
+                    u_hrv_literal_at_request: JSON.stringify(u_hrv_literal_at_request) as any,
+                })
+                .returning('id')
+                .executeTakeFirstOrThrow()
+                .then(r => r.id)
+        );
+    },
+
+    async log_abort(
+        user_id: string,
+        reclog_id: number,
+        original_track_id: string,
+        alternate_track_id: string | null
+    ): Promise<Result<void>> {
+        return try_catch(
+            db.insertInto('abort_rec_log')
+                .values({ user_id, reclog_id, original_track_id, alternate_track_id })
+                .execute()
+                .then(() => undefined)
+        );
+    },
+
+    async insert_physical_feedback(record: Omit<Insertable<PhysicalFeedback>, 'id' | 'timestamp'>): Promise<Result<number>> {
+        return try_catch(
+            db.insertInto('physical_feedback')
+                .values(record)
+                .returning('id')
+                .executeTakeFirstOrThrow()
+                .then(r => r.id)
+        );
+    },
+
+    async get_user_physical_feedback(user_id: string, limit = 200) {
+        return try_catch(
+            db.selectFrom('physical_feedback')
+                .where('user_id', '=', user_id)
+                .orderBy('timestamp', 'desc')
+                .limit(limit)
+                .selectAll()
+                .execute()
+        );
+    },
+
+    /** Random N non-hidden tracks with audio features, excluding given track IDs. */
+    async random_candidates(exclude_ids: string[], n = 200) {
+        let query = db.selectFrom('track')
+            .innerJoin('track_audio_features', 'track_audio_features.track_id', 'track.id')
+            .where('track.hidden', '=', false)
+            .select([
+                'track.id as track_id',
+                'track.name',
+                'track.duration_s',
+                'track_audio_features.tempo',
+                'track_audio_features.loud_mean',
+                'track_audio_features.pulse_clarity',
+                'track_audio_features.mode',
+            ])
+            .orderBy(sql`random()`)
+            .limit(n);
+
+        if (exclude_ids.length > 0) {
+            query = query.where('track.id', 'not in', exclude_ids as any);
+        }
+
+        return try_catch(query.execute());
+    },
+};
+
+// ============================================================================
+// Domain: Listen History
+// ============================================================================
+
+const History = {
+
+    async insert(user_id: string, track_id: string): Promise<Result<void>> {
+        return try_catch(
+            db.insertInto('listen_history')
+                .values({ user_id, track_id })
+                .execute()
+                .then(() => undefined)
+        );
+    },
+
+    async recent(user_id: string, limit = 20): Promise<Result<string[]>> {
+        return try_catch(
+            db.selectFrom('listen_history')
+                .where('user_id', '=', user_id)
+                .orderBy('timestamp', 'desc')
+                .limit(limit)
+                .select('track_id')
+                .execute()
+                .then(rows => rows.map(r => r.track_id))
+        );
+    },
+};
+
+
+export class DATABASE {
+    public static readonly Tracks = Tracks;
+    public static readonly Users = Users;
+    public static readonly Models = Models;
+    public static readonly Recommend = Recommend;
+    public static readonly History = History;
+}

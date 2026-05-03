@@ -29,3 +29,17 @@ export interface Timelines {
     chroma_matrix: ChromaMatrix[];         // shape: (n_points, 12)
     chroma_flux: number[];             // temporal change
 }
+
+export interface HRV {
+    hr: number;
+    rmssd: number;
+    sdnn: number;
+    pnn50: number;
+    lf: number;
+    hf: number;
+}
+
+export interface HRVBaseline {
+    literal: HRV;
+    std: HRV;
+}

@@ -3,11 +3,30 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import express from 'express';
 import routes from './routes';
 import { mid_logger } from './util/middleware';
+import { swaggerSchemas } from './types/swagger-schemas';
 
 const app = express();
 
 app.use(express.json());
 
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Server is running
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ */
 // Health check - highest priority
 app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
@@ -31,9 +50,9 @@ const specs = swaggerJsdoc({
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'ARCAEA API',
+            title: 'CARCAEA API',
             version: '1.0.0',
-            description: 'Music search API based on emotional characteristics (valence & arousal)',
+            description: 'HRV-based music recommendation backend',
         },
         servers: [
             {
@@ -45,6 +64,16 @@ const specs = swaggerJsdoc({
                 description: 'AWS EC2 server',
             },
         ],
+        tags: [
+            { name: 'Health',    description: 'Server status' },
+            { name: 'Recommend', description: 'Music recommendation' },
+            { name: 'Feedback',  description: 'HRV feedback recording' },
+            { name: 'User',      description: 'User management' },
+            { name: 'Songs',     description: 'Song queries' },
+        ],
+        components: {
+            schemas: swaggerSchemas,
+        },
     },
     apis: ['./src/app.ts', './src/routes/**/*.ts'],
 });
