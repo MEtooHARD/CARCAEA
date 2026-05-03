@@ -64,8 +64,8 @@ async function call_tempo_pulse(
 }
 
 async function call_pulse_clarity_timeline(file_path: string): Promise<ExtractPulseClarityTimelineResponse> {
-    // window=30s, hop=10s — gives sparse envelope (~1 value per 10s)
-    const body = new URLSearchParams({ file_path, window_size: '30', hop_length: '10' });
+    // window=12s, hop=4s — gives finer-grained envelope (~1 value per 4s)
+    const body = new URLSearchParams({ file_path, window_size: '12', hop_length: '4' });
     const res = await fetch(`${EXTRACTOR_BASE}/extract/pulse_clarity_timeline`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -237,7 +237,7 @@ export async function import_track(
     const duration_sec = tl.metadata.duration_sec;
     const chroma_matrix = raw_chroma as ChromaMatrix[];
 
-    // ── 6. Pulse clarity + tempo timeline (sparse, one value per 10 s) ────────
+    // ── 6. Pulse clarity + tempo timeline (sliding window, one value per 4 s) ─
     const pct = await call_pulse_clarity_timeline(file_path);
     const env_tempo = pct.tempo_timeline;
     const env_pulse_clarity = pct.pulse_clarity_timeline;

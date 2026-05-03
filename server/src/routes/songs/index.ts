@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { DATABASE } from '../../core/Database';
+import { DATABASE, db } from '../../core/Database';
 
 const router = Router();
 
@@ -47,36 +47,79 @@ router.get('/', async (req, res) => {
  * @swagger
  * /songs/{id}:
  *   get:
- *     summary: Get a single track by ID
+ *     summary: Get a single track by ID with optional features and envelopes
  *     tags: [Songs]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema: { type: string }
+ *       - in: query
+ *         name: features
+ *         schema: { type: boolean, default: false }
+ *         description: Include track_audio_features data
+ *       - in: query
+ *         name: envelopes
+ *         schema: { type: boolean, default: false }
+ *         description: Include track_feat_envelopes data
  *     responses:
  *       200:
  *         description: Track info
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Track'
+ *               type: object
+ *               properties:
+ *                 track:
+ *                   $ref: '#/components/schemas/Track'
+ *                 features:
+ *                   $ref: '#/components/schemas/TrackAudioFeatures'
+ *                 envelopes:
+ *                   $ref: '#/components/schemas/TrackFeatEnvelopes'
  *       404:
  *         description: Track not found
  *       500:
  *         description: Server error
  */
 router.get('/:id', async (req, res) => {
-    const result = await DATABASE.Tracks.find_by_id(req.params.id);
-    if (result.error) {
+    const { features = false, envelopes = false } = req.query;
+    const include_features = features === 'true' || Boolean(features) === true;
+    const include_envelopes = envelopes === 'true' || Boolean(envelopes) === true;
+
+    const track_result = await DATABASE.Tracks.find_by_id(req.params.id);
+    if (track_result.error) {
         res.status(500).json({ error: 'Failed to fetch track' });
         return;
     }
-    if (!result.data) {
+    if (!track_result.data) {
         res.status(404).json({ error: 'Track not found' });
         return;
     }
-    res.json(result.data);
+
+    const response: any = { track: track_result.data };
+
+    if (include_features) {
+        try {
+            const features_data = await db
+                .selectFrom('track_audio_features')
+                .where('track_id', '=', req.params.id)
+                .selectAll()
+                .executeTakeFirst();
+            if (features_data) response.features = features_data;
+        } catch (err) {
+            res.status(500).json({ error: 'Failed to fetch features' });
+            return;
+        }
+    }
+
+    if (include_envelopes) {
+        const envelopes_result = await DATABASE.Tracks.get_envelopes(req.params.id);
+        if (!envelopes_result.error && envelopes_result.data) {
+            response.envelopes = envelopes_result.data;
+        }
+    }
+
+    res.json(response);
 });
 
 export default router;

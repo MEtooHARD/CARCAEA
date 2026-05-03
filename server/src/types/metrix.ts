@@ -39,7 +39,18 @@ export interface HRV {
     hf: number;
 }
 
+/** Subset of HRV metrics that are log-normally distributed: rmssd, lf, hf. */
+export interface HRVLogMetrics {
+    rmssd: number;
+    lf: number;
+    hf: number;
+}
+
 export interface HRVBaseline {
     literal: HRV;
     std: HRV;
+    /** E[ln(x)] for log-scale metrics (rmssd, lf, hf). Required for ln-z-score ranking. */
+    ln_mean?: HRVLogMetrics;
+    /** std[ln(x)] for log-scale metrics (rmssd, lf, hf). Required for ln-z-score ranking. */
+    ln_std?: HRVLogMetrics;
 }

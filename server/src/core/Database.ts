@@ -353,15 +353,34 @@ const Recommend = {
     async random_candidates(exclude_ids: string[], n = 200) {
         let query = db.selectFrom('track')
             .innerJoin('track_audio_features', 'track_audio_features.track_id', 'track.id')
+            .innerJoin('track_platform', 'track_platform.track_id', 'track.id')
             .where('track.hidden', '=', false)
             .select([
                 'track.id as track_id',
                 'track.name',
                 'track.duration_s',
+                'track_platform.platform',
+                'track_platform.platform_id',
                 'track_audio_features.tempo',
-                'track_audio_features.loud_mean',
-                'track_audio_features.pulse_clarity',
+                'track_audio_features.tempo_std',
                 'track_audio_features.mode',
+                'track_audio_features.pulse_clarity',
+                'track_audio_features.loud_mean',
+                'track_audio_features.loud_std',
+                'track_audio_features.loud_skewness',
+                'track_audio_features.chroma_flux_mean',
+                'track_audio_features.chroma_flux_std',
+                'track_audio_features.chroma_flux_skewness',
+                'track_audio_features.thumbnail_tempo',
+                'track_audio_features.thumbnail_tempo_std',
+                'track_audio_features.thumbnail_mode',
+                'track_audio_features.thumbnail_pulse_clarity',
+                'track_audio_features.thumbnail_loud_mean',
+                'track_audio_features.thumbnail_loud_std',
+                'track_audio_features.thumbnail_loud_skewness',
+                'track_audio_features.thumbnail_chroma_flux_mean',
+                'track_audio_features.thumbnail_chroma_flux_std',
+                'track_audio_features.thumbnail_chroma_flux_skewness',
             ])
             .orderBy(sql`random()`)
             .limit(n);

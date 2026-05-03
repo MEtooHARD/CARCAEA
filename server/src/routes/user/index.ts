@@ -163,6 +163,37 @@ interface BaselineProp {
  * /user/baseline:
  *   post:
  *     summary: Submit a user HRV baseline for a daytime section.
+ *     description: |
+ *       Records the user's resting HRV statistics for a specific daytime section.
+ *       These values serve as the personalised normalisation reference for z-score
+ *       conversion during recommendation ranking.
+ *
+ *       **Required fields** — `baseline.literal` and `baseline.std`
+ *       These are computed from raw HRV readings in the baseline session:
+ *       - `literal`: sample mean of each raw HRV metric
+ *       - `std`: sample standard deviation of each raw HRV metric
+ *
+ *       **Optional fields** — `baseline.ln_mean` and `baseline.ln_std` (rmssd / lf / hf only)
+ *       rmssd, lf, and hf are log-normally distributed. Computing z-scores directly on the
+ *       raw scale is statistically incorrect because:
+ *       - The distribution is right-skewed, so mean ± std does not represent the central 68 % range
+ *       - Jensen's inequality means E[ln(x)] ≠ ln(E[x]), so the ln-scale mean cannot be
+ *         back-calculated from the raw mean
+ *
+ *       To enable correct ln-z-score normalisation, the client must compute and supply:
+ *       - `ln_mean.rmssd` = mean of ln(rmssd) across baseline samples  (i.e. E[ln(rmssd)])
+ *       - `ln_std.rmssd`  = std  of ln(rmssd) across baseline samples
+ *       - same for lf and hf
+ *
+ *       When these are provided, the ranking pipeline can normalise as:
+ *       `z = (ln(x) - ln_mean) / ln_std`
+ *       instead of the less accurate `z = (x - literal) / std`.
+ *
+ *       hr, sdnn, and pnn50 are approximately normally distributed; they use `literal` / `std`
+ *       directly and do not need ln-scale variants.
+ *
+ *       If `ln_mean` / `ln_std` are omitted, the system falls back to raw-scale z-score for all
+ *       metrics (acceptable for early testing, less accurate for lf/hf/rmssd).
  *     tags: [User]
  *     requestBody:
  *       required: true
@@ -223,6 +254,13 @@ router.post('/baseline', async (req, res) => {
         pnn50_std: baseline.std.pnn50,
         lf_std: baseline.std.lf,
         hf_std: baseline.std.hf,
+        // ln-scale stats (optional — null when not provided)
+        rmssd_ln_mean: baseline.ln_mean?.rmssd ?? null,
+        rmssd_ln_std:  baseline.ln_std?.rmssd  ?? null,
+        lf_ln_mean:    baseline.ln_mean?.lf    ?? null,
+        lf_ln_std:     baseline.ln_std?.lf     ?? null,
+        hf_ln_mean:    baseline.ln_mean?.hf    ?? null,
+        hf_ln_std:     baseline.ln_std?.hf     ?? null,
     });
 
     if (insert_res.error) return res.status(500).json({ error: 'Error when adding baseline' });

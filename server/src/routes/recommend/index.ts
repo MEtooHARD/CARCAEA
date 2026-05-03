@@ -1,6 +1,7 @@
 import { Router } from "express";
 import abort from './abort/index';
 import { DATABASE } from '../../core/Database';
+import { rank_by_model, hrv_distance } from '../../core/ml';
 
 const router = Router();
 
@@ -23,6 +24,7 @@ interface Prop {
         hf: number;
     };
     limit?: number;
+    use_model?: boolean;
 };
 
 const HRV_FIELDS = ['hr', 'rmssd', 'sdnn', 'pnn50', 'lf', 'hf'] as const;
@@ -51,7 +53,8 @@ export function validate_hrv(hrv: any, name: string): string | null {
  *               user_id:  { type: string }
  *               user_hrv: { $ref: '#/components/schemas/HRVMetrics' }
  *               goal_hrv: { $ref: '#/components/schemas/HRVMetrics' }
- *               limit:    { type: integer, default: 5, description: Max tracks to return }
+ *               limit:     { type: integer, default: 5, description: Max tracks to return }
+ *               use_model: { type: boolean, default: false, description: 'If true and the user has an active model, rank candidates by predicted HRV distance to goal_hrv instead of a simple heuristic.' }
  *     responses:
  *       200:
  *         description: Recommendation list
@@ -69,18 +72,20 @@ export function validate_hrv(hrv: any, name: string): string | null {
  *                       track_id:      { type: string }
  *                       name:          { type: string }
  *                       duration_s:    { type: number }
+ *                       platform:      { type: string, enum: ["jamendo", "local"] }
+ *                       platform_id:   { type: string }
  *                       tempo:         { type: number }
  *                       loud_mean:     { type: number }
  *                       pulse_clarity: { type: number }
  *                       mode:          { type: number }
- *                       score:         { type: number }
+ *                       score:         { type: number, description: 'Model: L2 distance of predicted HRV end-state to goal_hrv. Fallback: |tempo - goal_hrv.hr|.' }
  *       400:
  *         description: Invalid parameters
  *       500:
  *         description: Server error
  */
 router.post('/', async (req, res) => {
-    const { user_id, user_hrv, goal_hrv, limit = 5 } = req.body as Prop;
+    const { user_id, user_hrv, goal_hrv, limit = 5, use_model = false } = req.body as Prop;
 
     if (typeof user_id !== 'string') {
         res.status(400).json({ error: 'user_id must be a string' });
@@ -109,11 +114,31 @@ router.post('/', async (req, res) => {
         return;
     }
 
-    // Stage 2: sort by |tempo - goal_hr| ascending, return top limit
-    const sorted = candidates.data
-        .map(t => ({ ...t, score: Math.abs(t.tempo - goal_hrv.hr) }))
-        .sort((a, b) => a.score - b.score)
-        .slice(0, limit);
+    // Stage 2: rank candidates
+    let sorted: (typeof candidates.data[number] & { score: number })[];
+
+    if (use_model) {
+        const ranked = await rank_by_model(candidates.data, user_hrv, goal_hrv, user_id);
+        if (ranked.error) {
+            console.warn('[recommend] rank_by_model failed, falling back:', ranked.error.message);
+        }
+        if (ranked.data) {
+            // model ranking succeeded: distance IS the score
+            sorted = ranked.data.slice(0, limit).map(t => ({ ...t, score: t.distance }));
+        } else {
+            // no model or error: fall back to simple heuristic
+            sorted = candidates.data
+                .map(t => ({ ...t, score: Math.abs(t.tempo - goal_hrv.hr) }))
+                .sort((a, b) => a.score - b.score)
+                .slice(0, limit);
+        }
+    } else {
+        // Simple fallback: sort by |tempo - goal_hr|
+        sorted = candidates.data
+            .map(t => ({ ...t, score: Math.abs(t.tempo - goal_hrv.hr) }))
+            .sort((a, b) => a.score - b.score)
+            .slice(0, limit);
+    }
 
     // Log recommendation
     const candidate_ids = candidates.data.map(t => t.track_id);
@@ -127,7 +152,7 @@ router.post('/', async (req, res) => {
         return;
     }
 
-    res.json({ reclog_id: log.data, tracks: sorted });
+    res.status(200).json({ reclog_id: log.data, tracks: sorted });
 });
 
 router.use('/abort', abort);

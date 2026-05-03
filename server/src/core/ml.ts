@@ -99,3 +99,134 @@ export async function trigger_train(user_id: string): Promise<Result<number>> {
 
 /** Threshold for auto-triggering a retrain */
 export const RETRAIN_THRESHOLD = 100;
+
+// ============================================================================
+// Prediction / Ranking
+// ============================================================================
+
+export type HRVMap = { hr: number; rmssd: number; sdnn: number; pnn50: number; lf: number; hf: number };
+
+/** Euclidean distance in the 6-dimensional HRV space. */
+export function hrv_distance(a: HRVMap, b: HRVMap): number {
+    return Math.sqrt(
+        (a.hr - b.hr) ** 2 +
+        (a.rmssd - b.rmssd) ** 2 +
+        (a.sdnn - b.sdnn) ** 2 +
+        (a.pnn50 - b.pnn50) ** 2 +
+        (a.lf - b.lf) ** 2 +
+        (a.hf - b.hf) ** 2
+    );
+}
+
+function get_daytime_section(): number {
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 12) return 0;  // morning
+    if (hour >= 12 && hour < 17) return 1; // afternoon
+    if (hour >= 17 && hour < 21) return 2; // evening
+    return 3;                               // night
+}
+
+// Minimal shape needed from candidates to build a predict payload
+type PredictableCandidate = {
+    track_id: string;
+    duration_s: number;
+    tempo: number | null;
+    tempo_std: number | null;
+    mode: number | null;
+    pulse_clarity: number | null;
+    loud_mean: number | null;
+    loud_std: number | null;
+    loud_skewness: number | null;
+    chroma_flux_mean: number | null;
+    chroma_flux_std: number | null;
+    chroma_flux_skewness: number | null;
+    thumbnail_tempo: number | null;
+    thumbnail_tempo_std: number | null;
+    thumbnail_mode: number | null;
+    thumbnail_pulse_clarity: number | null;
+    thumbnail_loud_mean: number | null;
+    thumbnail_loud_std: number | null;
+    thumbnail_loud_skewness: number | null;
+    thumbnail_chroma_flux_mean: number | null;
+    thumbnail_chroma_flux_std: number | null;
+    thumbnail_chroma_flux_skewness: number | null;
+};
+
+/**
+ * Use the user's active XGBoost model to rank candidates by predicted HRV
+ * distance to the goal state.
+ *
+ * Returns candidates with an added `distance` field, sorted ascending (best first).
+ * Returns `{ data: null }` (no error) when the user has no active model yet —
+ * caller should fall back to a simpler ranking.
+ */
+export async function rank_by_model<T extends PredictableCandidate>(
+    candidates: T[],
+    user_hrv: HRVMap,
+    goal_hrv: HRVMap,
+    user_id: string,
+): Promise<Result<(T & { distance: number })[] | null>> {
+    if (candidates.length === 0) return { data: [], error: null };
+
+    const model_res = await DATABASE.Models.get_active(user_id);
+    if (model_res.error) return { data: null, error: model_res.error };
+    const model = model_res.data;
+    if (!model) return { data: null, error: null }; // no model yet — caller falls back
+
+    const daytime = get_daytime_section();
+    const cases = candidates.map(c => ({
+        features: [
+            c.tempo ?? 0, c.tempo_std ?? 0, c.mode ?? 0, c.pulse_clarity ?? 0,
+            c.loud_mean ?? 0, c.loud_std ?? 0, c.loud_skewness ?? 0,
+            c.chroma_flux_mean ?? 0, c.chroma_flux_std ?? 0, c.chroma_flux_skewness ?? 0,
+            c.thumbnail_tempo ?? 0, c.thumbnail_tempo_std ?? 0, c.thumbnail_mode ?? 0, c.thumbnail_pulse_clarity ?? 0,
+            c.thumbnail_loud_mean ?? 0, c.thumbnail_loud_std ?? 0, c.thumbnail_loud_skewness ?? 0,
+            c.thumbnail_chroma_flux_mean ?? 0, c.thumbnail_chroma_flux_std ?? 0, c.thumbnail_chroma_flux_skewness ?? 0,
+            user_hrv.hr, user_hrv.rmssd, user_hrv.sdnn, user_hrv.pnn50, user_hrv.lf, user_hrv.hf,
+            c.duration_s,
+            daytime,
+        ],
+    }));
+
+    const models_json = {
+        hr: model.model_hr,
+        rmssd: model.model_rmssd,
+        sdnn: model.model_sdnn,
+        pnn50: model.model_pnn50,
+        lf: model.model_lf,
+        hf: model.model_hf,
+    };
+
+    let ml_res: Response;
+    try {
+        ml_res = await fetch(`${ML_BASE}/predict`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ models: models_json, cases }),
+        });
+    } catch (e) {
+        return { data: null, error: e as Error };
+    }
+
+    if (!ml_res.ok) {
+        const text = await ml_res.text().catch(() => '');
+        return { data: null, error: new Error(`ml_server /predict failed (${ml_res.status}): ${text}`) };
+    }
+
+    const { predictions } = await ml_res.json() as { predictions: HRVMap[] };
+
+    const ranked = candidates.map((c, i) => {
+        const delta = predictions[i];
+        const predicted_end: HRVMap = {
+            hr:    user_hrv.hr    + delta.hr,
+            rmssd: user_hrv.rmssd + delta.rmssd,
+            sdnn:  user_hrv.sdnn  + delta.sdnn,
+            pnn50: user_hrv.pnn50 + delta.pnn50,
+            lf:    user_hrv.lf   + delta.lf,
+            hf:    user_hrv.hf   + delta.hf,
+        };
+        return { ...c, distance: hrv_distance(predicted_end, goal_hrv) };
+    }).sort((a, b) => a.distance - b.distance);
+
+    return { data: ranked, error: null };
+}

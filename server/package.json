@@ -8,7 +8,8 @@
     "generate:db": "kysely-codegen --dialect postgres --out-file ./src/types/database_schema.d.ts && node fix-codegen.mjs",
     "predictors:report": "tsx src/scripts/predictors_report.ts",
     "import:tracks": "tsx src/core/import/main.ts",
-    "recalculate": "tsx src/scripts/recalculate-features.ts"
+    "recalculate": "tsx src/scripts/recalculate-features.ts",
+    "patch:envelope": "tsx src/scripts/patch-envelope-timeline.ts"
   },
   "type": "module",
   "keywords": [],

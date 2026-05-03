@@ -117,7 +117,15 @@ CREATE TABLE user_hrv_baseline (
     lf_std FLOAT8 NOT NULL,
     -- 
     hf_literal FLOAT8 NOT NULL,
-    hf_std FLOAT8 NOT NULL
+    hf_std FLOAT8 NOT NULL,
+    -- ln-scale stats for log-normally distributed metrics (rmssd, lf, hf)
+    -- E[ln(x)] and std[ln(x)] computed from the baseline session; NULL if not provided
+    rmssd_ln_mean FLOAT8,
+    rmssd_ln_std  FLOAT8,
+    lf_ln_mean    FLOAT8,
+    lf_ln_std     FLOAT8,
+    hf_ln_mean    FLOAT8,
+    hf_ln_std     FLOAT8
 );
 
 CREATE TABLE xgb_models (
