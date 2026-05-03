@@ -7,7 +7,8 @@
     "start": "tsx src/index.ts",
     "generate:db": "kysely-codegen --dialect postgres --out-file ./src/types/database_schema.d.ts && node fix-codegen.mjs",
     "predictors:report": "tsx src/scripts/predictors_report.ts",
-    "import:tracks": "tsx src/core/import/main.ts"
+    "import:tracks": "tsx src/core/import/main.ts",
+    "recalculate": "tsx src/scripts/recalculate-features.ts"
   },
   "type": "module",
   "keywords": [],
@@ -15,7 +16,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^25.0.9",
+    "@types/node": "^25.6.0",
     "@types/pg": "^8.16.0",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",

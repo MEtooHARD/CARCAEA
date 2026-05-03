@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { DATABASE } from "../../core/Database";
+import { trigger_train, RETRAIN_THRESHOLD } from "../../core/ml";
 
 const router = Router();
 
@@ -166,6 +167,19 @@ router.post('/', async (req, res) => {
     }
 
     res.json({ feedback_id: feedback.data });
+
+    // Auto-trigger retrain (fire-and-forget) when feedback count hits threshold
+    DATABASE.Models.count_feedback(user_id).then(count_res => {
+        if (!count_res.error && count_res.data! % RETRAIN_THRESHOLD === 0) {
+            trigger_train(user_id).then(train_res => {
+                if (train_res.error) {
+                    console.error(`[ml] Auto-train failed for user ${user_id}:`, train_res.error);
+                } else {
+                    console.log(`[ml] Auto-train complete for user ${user_id}, model_id=${train_res.data}`);
+                }
+            });
+        }
+    });
 });
 
 export default router;

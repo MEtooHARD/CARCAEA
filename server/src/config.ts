@@ -2,6 +2,10 @@ export const extractor_name = process.env.EXTRACTOR;
 export const extractor_port = process.env.EXTRACTOR_IN_PORT;
 export const extractor_host_port = process.env.EXTRACTOR_HOST_PORT;
 
+export const ml_server_name = process.env.ML_SERVER;
+export const ml_server_port = process.env.ML_SERVER_IN_PORT;
+export const ml_server_host_port = process.env.ML_SERVER_HOST_PORT;
+
 export const database_name = process.env.DATABASE;
 export const database_port = process.env.DATABASE_IN_PORT;
 export const database_host_port = process.env.DATABASE_HOST_PORT;
@@ -30,3 +34,13 @@ if (!postgres_user || !postgres_password || !postgres_db_name) {
     console.log('Shutdown server...');
     process.exit(1);
 }
+
+if (!ml_server_name || !ml_server_port) {
+    console.error('ML server configuration is missing. Please set ML_SERVER and ML_SERVER_IN_PORT in the environment variables.');
+    console.log(`Current values - ML_SERVER: ${ml_server_name}, ML_SERVER_IN_PORT: ${ml_server_port}`);
+    console.log('Shutdown server...');
+    process.exit(1);
+}
+
+export const ML_BASE = `http://${ml_server_name}:${ml_server_port}`;
+export const EXTRACTOR_BASE = `http://${extractor_name}:${extractor_port}`;

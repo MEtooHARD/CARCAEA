@@ -9,6 +9,7 @@ import type { ChromaMatrix } from '../../types/metrix';
 import { mode_score } from '../../util/audio_feat/mode';
 import { statistic } from '../../util/audio_feat/statistic';
 import { extractThumbnail } from '../../util/audio_feat/thumbnail';
+import { snap_values_iterative, mode } from '../../util/math';
 import { db, DATABASE } from '../Database';
 
 const EXTRACTOR_BASE = `http://${process.env.EXTRACTOR ?? 'extractor'}:${process.env.EXTRACTOR_IN_PORT ?? '5000'}`;
@@ -251,9 +252,19 @@ export async function import_track(
     const loud_stats = statistic(loudness);
     const flux_stats = statistic(chroma_flux);
     const global_mode = mode_score(chroma_matrix);
-    const global_tempo = arr_mean(env_tempo);
-    const global_tempo_std = arr_std(env_tempo);
     const global_pulse_clarity = arr_mean(env_pulse_clarity);
+
+    // Weighted tempo: snap first, then group by tempo value, sum pc for each group, take highest
+    const snapped_tempo = snap_values_iterative(env_tempo, 1.0, 2, 3);
+    const tempo_pc_map = new Map<number, number>();
+    for (let i = 0; i < snapped_tempo.length; i++) {
+        const t = Math.round(snapped_tempo[i] * 10) / 10; // round to 1 decimal
+        const pc = env_pulse_clarity[i];
+        tempo_pc_map.set(t, (tempo_pc_map.get(t) ?? 0) + pc);
+    }
+    const global_tempo = Array.from(tempo_pc_map.entries())
+        .sort(([, a], [, b]) => b - a)[0]?.[0] ?? arr_mean(env_tempo);
+    const global_tempo_std = arr_std(env_tempo);
 
     // ── 10. Thumbnail envelope slices (4 Hz) ──────────────────────────────────
     const tn_start_frame = Math.floor(thumbnail.start_sec * sample_rate);
@@ -266,8 +277,8 @@ export async function import_track(
     const tn_flux_stats = statistic(tn_chroma_flux.length > 0 ? tn_chroma_flux : chroma_flux);
     const tn_mode = mode_score(tn_chroma.length > 0 ? tn_chroma : chroma_matrix);
 
-    const tn_tempo_slice = slice_pulse_timeline(env_tempo, thumbnail.start_sec, thumbnail.end_sec);
-    const tn_tempo_std = arr_std(tn_tempo_slice);
+    const tn_tempo_slice = slice_pulse_timeline(snapped_tempo, thumbnail.start_sec, thumbnail.end_sec);
+    const tn_tempo_std = arr_std(tn_tempo_slice); // std of snapped values in thumbnail range
 
     // ── 10. DB inserts ─────────────────────────────────────────────────────────
     const track_id = randomUUID();
@@ -291,7 +302,7 @@ export async function import_track(
         thumbnail_end_sec: thumbnail.end_sec,
         thumbnail_score: thumbnail.score,
         thumbnail_coverage: thumbnail.coverage,
-        thumbnail_tempo: tn_tp.tempo_bpm,
+        thumbnail_tempo: mode(tn_tempo_slice),
         thumbnail_tempo_std: tn_tempo_std,
         thumbnail_mode: tn_mode,
         thumbnail_pulse_clarity: tn_tp.pulse_clarity,

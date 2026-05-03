@@ -183,3 +183,22 @@ export function snap_values_iterative(
     }
     return result;
 }
+
+/**
+ * 計算眾數（最常見的值）
+ * 如果有多個眾數，返回最小的那個
+ * @param values 輸入數組（應為 rounded/snapped 值）
+ * @returns 眾數
+ */
+export function mode(values: number[]): number {
+    if (values.length === 0) return 0;
+    
+    const freq = new Map<number, number>();
+    for (const v of values) {
+        const rounded = Math.round(v * 10) / 10; // 1 decimal place
+        freq.set(rounded, (freq.get(rounded) ?? 0) + 1);
+    }
+    
+    return Array.from(freq.entries())
+        .sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]?.[0] ?? 0;
+}

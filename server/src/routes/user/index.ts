@@ -4,10 +4,13 @@ import { DATABASE, db } from "../../core/Database";
 import { validate_hrv } from "../recommend";
 import type { HRVBaseline } from "../../types/metrix";
 import { try_catch } from "../../types/Result";
+import model_router from "./model";
 
 export const DAYTIME_OPTIONS = ["afternoon", "evening", "morning", "night"] as const;
 
 const router = Router();
+
+router.use('/model', model_router);
 
 /**
  * @swagger
@@ -70,13 +73,13 @@ router.post('/', async (req, res) => {
     if (typeof name !== 'string')
         return res.status(400).json({ error: 'name must be a string' });
 
-
-    const insert_res = await DATABASE.Users.insert(randomUUID(), name);
+    const uid = randomUUID();
+    const insert_res = await DATABASE.Users.insert(uid, name);
 
     if (insert_res.error)
         return res.status(500).json({ error: 'Error when creating the user' });
 
-    return res.json({ ok: true });
+    return res.status(200).json({ id: uid, name });
 });
 
 router.put('/', async (req, res) => {
@@ -88,10 +91,44 @@ router.put('/', async (req, res) => {
     if (update_res.error)
         return res.status(500).json({ error: 'Error when updating the user' });
 
-    return res.json({ ok: true });
+    return res.status(200).json({ id: user_id, name });
 });
 
-/** get matched user */
+/**
+ * @swagger
+ * /user:
+ *   get:
+ *     summary: Query user by ID or name
+ *     tags: [User]
+ *     parameters:
+ *       - in: query
+ *         name: user_id
+ *         schema: { type: string }
+ *         description: Exact user ID lookup
+ *       - in: query
+ *         name: name
+ *         schema: { type: string }
+ *         description: Fuzzy name search
+ *     responses:
+ *       200:
+ *         description: Matched user(s)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - type: object
+ *                   properties:
+ *                     user: { $ref: '#/components/schemas/User' }
+ *                 - type: object
+ *                   properties:
+ *                     users:
+ *                       type: array
+ *                       items: { $ref: '#/components/schemas/User' }
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 router.get('/', async (req, res) => {
     const { user_id, name } = req.query;
 

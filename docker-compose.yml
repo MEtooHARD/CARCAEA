@@ -25,6 +25,11 @@ services:
       - ${DB_DUMP}:/app/db_dump
     ports:
       - "${EXTRACTOR_HOST_PORT}:${EXTRACTOR_IN_PORT}"
+  ml_server:
+    build: ./ml_server
+    container_name: ${ML_SERVER}
+    ports:
+      - "${ML_SERVER_HOST_PORT}:${ML_SERVER_IN_PORT}"
   postgres:
     build: ./postgres
     container_name: ${DATABASE}

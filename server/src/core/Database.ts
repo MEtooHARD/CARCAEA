@@ -106,6 +106,15 @@ const Tracks = {
                 .execute()
         );
     },
+
+    async get_envelopes(track_id: string) {
+        return try_catch(
+            db.selectFrom('track_feat_envelopes')
+                .where('track_id', '=', track_id)
+                .selectAll()
+                .executeTakeFirst()
+        );
+    },
 };
 
 // ============================================================================
@@ -204,6 +213,79 @@ const Models = {
 
                 return inserted.id;
             })
+        );
+    },
+
+    async list(user_id: string): Promise<Result<Selectable<XgbModels>[]>> {
+        return try_catch(
+            db.selectFrom('xgb_models')
+                .where('user_id', '=', user_id)
+                .orderBy('timestamp', 'desc')
+                .selectAll()
+                .execute()
+        );
+    },
+
+    async activate(model_id: number, user_id: string): Promise<Result<void>> {
+        return try_catch(
+            db.transaction().execute(async (trx) => {
+                await trx.updateTable('xgb_models')
+                    .set({ active: false })
+                    .where('user_id', '=', user_id)
+                    .execute();
+                await trx.updateTable('xgb_models')
+                    .set({ active: true })
+                    .where('id', '=', model_id)
+                    .where('user_id', '=', user_id)
+                    .execute();
+            }).then(() => undefined)
+        );
+    },
+
+    async save_training_data(model_id: number, case_ids: number[]): Promise<Result<void>> {
+        return try_catch(
+            db.insertInto('model_training_data')
+                .values({ model_id, case_ids })
+                .execute()
+                .then(() => undefined)
+        );
+    },
+
+    async count_feedback(user_id: string): Promise<Result<number>> {
+        return try_catch(
+            db.selectFrom('physical_feedback')
+                .where('user_id', '=', user_id)
+                .select(db.fn.countAll<number>().as('count'))
+                .executeTakeFirstOrThrow()
+                .then(r => Number(r.count))
+        );
+    },
+
+    async get_training_cases(user_id: string) {
+        return try_catch(
+            db.selectFrom('physical_feedback as pf')
+                .innerJoin('track_audio_features as taf', 'taf.track_id', 'pf.track_id')
+                .where('pf.user_id', '=', user_id)
+                .orderBy('pf.timestamp', 'desc')
+                .select([
+                    'pf.id as feedback_id',
+                    'pf.daytime_section',
+                    'pf.listen_start_sec',
+                    'pf.listen_end_sec',
+                    'pf.u_hr_literal', 'pf.u_rmssd_literal', 'pf.u_sdnn_literal',
+                    'pf.u_pnn50_literal', 'pf.u_lf_literal', 'pf.u_hf_literal',
+                    'pf.r_hr_literal', 'pf.r_rmssd_literal', 'pf.r_sdnn_literal',
+                    'pf.r_pnn50_literal', 'pf.r_lf_literal', 'pf.r_hf_literal',
+                    'taf.tempo', 'taf.tempo_std', 'taf.mode', 'taf.pulse_clarity',
+                    'taf.loud_mean', 'taf.loud_std', 'taf.loud_skewness',
+                    'taf.chroma_flux_mean', 'taf.chroma_flux_std', 'taf.chroma_flux_skewness',
+                    'taf.thumbnail_tempo', 'taf.thumbnail_tempo_std', 'taf.thumbnail_mode',
+                    'taf.thumbnail_pulse_clarity', 'taf.thumbnail_loud_mean',
+                    'taf.thumbnail_loud_std', 'taf.thumbnail_loud_skewness',
+                    'taf.thumbnail_chroma_flux_mean', 'taf.thumbnail_chroma_flux_std',
+                    'taf.thumbnail_chroma_flux_skewness',
+                ])
+                .execute()
         );
     },
 };

@@ -68,8 +68,9 @@ const specs = swaggerJsdoc({
             { name: 'Health',    description: 'Server status' },
             { name: 'Recommend', description: 'Music recommendation' },
             { name: 'Feedback',  description: 'HRV feedback recording' },
-            { name: 'User',      description: 'User management' },
             { name: 'Songs',     description: 'Song queries' },
+            { name: 'User',      description: 'User management' },
+            { name: 'Model',     description: 'Per-user ML model management' },
         ],
         components: {
             schemas: swaggerSchemas,

@@ -43,6 +43,13 @@ export interface ListenHistory {
   user_id: string;
 }
 
+export interface ModelTrainingData {
+  case_ids: number[];
+  id: Generated<number>;
+  model_id: number;
+  timestamp: Generated<Timestamp>;
+}
+
 export interface PhysicalFeedback {
   baseline_id: number | null;
   daytime_section: DaytimeSection;
@@ -72,6 +79,7 @@ export interface PhysicalFeedback {
 export interface RecommendationLog {
   candidate_track_ids: string[];
   id: Generated<number>;
+  model_id: number | null;
   timestamp: Generated<Timestamp>;
   u_hrv_literal_at_request: Json;
   user_id: string;
@@ -189,6 +197,7 @@ export interface XgbModels {
 export interface DB {
   abort_rec_log: AbortRecLog;
   listen_history: ListenHistory;
+  model_training_data: ModelTrainingData;
   physical_feedback: PhysicalFeedback;
   recommendation_log: RecommendationLog;
   track: Track;

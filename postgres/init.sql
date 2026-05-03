@@ -134,6 +134,13 @@ CREATE TABLE xgb_models (
     model_hf JSON NOT NULL
 );
 
+CREATE TABLE model_training_data (
+    id SERIAL PRIMARY KEY,
+    model_id INT NOT NULL UNIQUE REFERENCES xgb_models(id) ON DELETE CASCADE,
+    case_ids INT [] NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE listen_history (
     id SERIAL PRIMARY KEY,
     track_id VARCHAR(64) NOT NULL REFERENCES track(id) ON DELETE CASCADE,
@@ -145,8 +152,11 @@ CREATE TABLE recommendation_log (
     id SERIAL PRIMARY KEY,
     user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     candidate_track_ids VARCHAR(64) [] NOT NULL,
-    u_hrv_literal_at_request JSON NOT NULL,
-    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    model_id INT REFERENCES xgb_models(id) ON DELETE
+    SET
+        NULL,
+        u_hrv_literal_at_request JSON NOT NULL,
+        timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE abort_rec_log (
@@ -194,6 +204,8 @@ CREATE INDEX ON physical_feedback (user_id, timestamp DESC);
 CREATE INDEX ON recommendation_log (user_id, timestamp DESC);
 
 CREATE INDEX ON xgb_models (user_id, active);
+
+CREATE INDEX ON model_training_data (model_id);
 
 CREATE INDEX ON track_platform (platform, platform_id);
 
