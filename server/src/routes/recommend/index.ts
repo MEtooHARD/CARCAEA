@@ -1,7 +1,7 @@
 import { Router } from "express";
 import abort from './abort/index';
 import { DATABASE } from '../../core/Database';
-import { rank_by_model, hrv_distance } from '../../core/ml';
+import { rank_by_model } from '../../core/ml';
 
 const router = Router();
 
@@ -24,7 +24,6 @@ interface Prop {
         hf: number;
     };
     limit?: number;
-    use_model?: boolean;
 };
 
 const HRV_FIELDS = ['hr', 'rmssd', 'sdnn', 'pnn50', 'lf', 'hf'] as const;
@@ -40,7 +39,22 @@ export function validate_hrv(hrv: any, name: string): string | null {
  * @swagger
  * /recommend:
  *   post:
- *     summary: Get music recommendations based on current and goal HRV
+ *     summary: Get personalised music recommendations based on current and goal HRV
+ *     description: |
+ *       Two-stage recommendation pipeline.
+ *
+ *       **Stage 1 — Candidate sampling**: Randomly draws up to 200 tracks from the
+ *       database, excluding the user's 20 most recently listened tracks.
+ *
+ *       **Stage 2 — Ranking**: If the user has an active personal XGBoost model,
+ *       each candidate is scored by predicting the HRV change the song would induce
+ *       for this user (given current HRV state and time-of-day context), then computing
+ *       the Euclidean distance between the predicted HRV end-state and `goal_hrv`.
+ *       Candidates are sorted ascending by distance (closest to goal = best match).
+ *       When no personal model exists yet, a heuristic `|tempo − goal_hrv.hr|` is used.
+ *
+ *       The session is logged and the returned `reclog_id` should be passed to
+ *       `/feedback` and `/recommend/abort` for full traceability.
  *     tags: [Recommend]
  *     requestBody:
  *       required: true
@@ -50,11 +64,19 @@ export function validate_hrv(hrv: any, name: string): string | null {
  *             type: object
  *             required: [user_id, user_hrv, goal_hrv]
  *             properties:
- *               user_id:  { type: string }
- *               user_hrv: { $ref: '#/components/schemas/HRVMetrics' }
- *               goal_hrv: { $ref: '#/components/schemas/HRVMetrics' }
- *               limit:     { type: integer, default: 5, description: Max tracks to return }
- *               use_model: { type: boolean, default: false, description: 'If true and the user has an active model, rank candidates by predicted HRV distance to goal_hrv instead of a simple heuristic.' }
+ *               user_id:
+ *                 type: string
+ *                 description: Unique user identifier (UUID).
+ *               user_hrv:
+ *                 $ref: '#/components/schemas/HRVMetrics'
+ *                 description: User's current measured HRV state.
+ *               goal_hrv:
+ *                 $ref: '#/components/schemas/HRVMetrics'
+ *                 description: Target HRV state the user wants to move toward.
+ *               limit:
+ *                 type: integer
+ *                 default: 5
+ *                 description: Maximum number of tracks to return (capped at 200).
  *     responses:
  *       200:
  *         description: Recommendation list
@@ -63,29 +85,39 @@ export function validate_hrv(hrv: any, name: string): string | null {
  *             schema:
  *               type: object
  *               properties:
- *                 reclog_id: { type: integer }
+ *                 reclog_id:
+ *                   type: integer
+ *                   description: Recommendation session log ID. Pass this to /feedback and /recommend/abort.
+ *                 ranked_by:
+ *                   type: string
+ *                   enum: [model, heuristic]
+ *                   description: '"model" when the user''s personal XGBoost model was used; "heuristic" when no model is available yet (sorts by |tempo − goal_hrv.hr|).'
+ *                 model_id:
+ *                   type: integer
+ *                   nullable: true
+ *                   description: ID of the XGBoost model used for ranking; null when ranked_by is "heuristic".
  *                 tracks:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
- *                       track_id:      { type: string }
- *                       name:          { type: string }
- *                       duration_s:    { type: number }
- *                       platform:      { type: string, enum: ["jamendo", "local"] }
- *                       platform_id:   { type: string }
- *                       tempo:         { type: number }
- *                       loud_mean:     { type: number }
- *                       pulse_clarity: { type: number }
- *                       mode:          { type: number }
- *                       score:         { type: number, description: 'Model: L2 distance of predicted HRV end-state to goal_hrv. Fallback: |tempo - goal_hrv.hr|.' }
+ *                       track_id:      { type: string,  description: Internal track UUID. }
+ *                       name:          { type: string,  description: Track title. }
+ *                       duration_s:    { type: number,  description: Track duration in seconds. }
+ *                       platform:      { type: string, enum: [jamendo, local], description: Source platform. }
+ *                       platform_id:   { type: string,  description: Platform-specific track ID (e.g. Jamendo numeric ID). }
+ *                       tempo:         { type: number,  description: Global weighted tempo in BPM. }
+ *                       loud_mean:     { type: number,  description: Mean loudness across the track in dBFS. }
+ *                       pulse_clarity: { type: number,  description: 'Beat salience score (0–1); higher = stronger rhythmic pulse.' }
+ *                       mode:          { type: number,  description: 'Mode confidence (0 = minor, 1 = major).' }
+ *                       score:         { type: number,  description: 'Model: L2 distance of predicted HRV end-state to goal_hrv (lower = better match). Heuristic: |tempo − goal_hrv.hr|.' }
  *       400:
- *         description: Invalid parameters
+ *         description: Invalid request body (missing or wrong-typed fields).
  *       500:
- *         description: Server error
+ *         description: Database or downstream service error.
  */
 router.post('/', async (req, res) => {
-    const { user_id, user_hrv, goal_hrv, limit = 5, use_model = false } = req.body as Prop;
+    const { user_id, user_hrv, goal_hrv, limit = 5 } = req.body as Prop;
 
     if (typeof user_id !== 'string') {
         res.status(400).json({ error: 'user_id must be a string' });
@@ -114,26 +146,23 @@ router.post('/', async (req, res) => {
         return;
     }
 
-    // Stage 2: rank candidates
+    // Stage 2: rank candidates — prefer personal model, fall back to heuristic
     let sorted: (typeof candidates.data[number] & { score: number })[];
+    let ranked_by: 'model' | 'heuristic' = 'heuristic';
+    let used_model_id: number | null = null;
 
-    if (use_model) {
-        const ranked = await rank_by_model(candidates.data, user_hrv, goal_hrv, user_id);
-        if (ranked.error) {
-            console.warn('[recommend] rank_by_model failed, falling back:', ranked.error.message);
-        }
-        if (ranked.data) {
-            // model ranking succeeded: distance IS the score
-            sorted = ranked.data.slice(0, limit).map(t => ({ ...t, score: t.distance }));
-        } else {
-            // no model or error: fall back to simple heuristic
-            sorted = candidates.data
-                .map(t => ({ ...t, score: Math.abs(t.tempo - goal_hrv.hr) }))
-                .sort((a, b) => a.score - b.score)
-                .slice(0, limit);
-        }
+    const model_ranked = await rank_by_model(candidates.data, user_hrv, goal_hrv, user_id);
+    if (model_ranked.error) {
+        console.warn('[recommend] rank_by_model failed, falling back:', model_ranked.error.message);
+    }
+
+    if (model_ranked.data) {
+        // Personal model available: sort by predicted HRV distance to goal
+        ranked_by = 'model';
+        used_model_id = model_ranked.data.model_id;
+        sorted = model_ranked.data.tracks.slice(0, limit).map(t => ({ ...t, score: t.distance }));
     } else {
-        // Simple fallback: sort by |tempo - goal_hr|
+        // No model yet: heuristic |tempo − goal_hrv.hr|
         sorted = candidates.data
             .map(t => ({ ...t, score: Math.abs(t.tempo - goal_hrv.hr) }))
             .sort((a, b) => a.score - b.score)
@@ -152,7 +181,7 @@ router.post('/', async (req, res) => {
         return;
     }
 
-    res.status(200).json({ reclog_id: log.data, tracks: sorted });
+    res.status(200).json({ reclog_id: log.data, ranked_by, model_id: used_model_id, tracks: sorted });
 });
 
 router.use('/abort', abort);

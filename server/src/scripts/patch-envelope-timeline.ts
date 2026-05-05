@@ -96,6 +96,7 @@ const rows = await db
     .innerJoin('track_platform as tp', 'tp.track_id', 'fe.track_id')
     .innerJoin('track_audio_features as af', 'af.track_id', 'fe.track_id')
     .where('tp.platform', '=', 'jamendo')
+    .where('t.hidden', '=', false)
     .where(sql<boolean>`ABS(
         array_length(fe.env_tempo, 1)
         - (CEIL((t.duration_s - 30.0) / 10.0)::int + 1)

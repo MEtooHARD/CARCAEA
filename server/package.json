@@ -9,7 +9,8 @@
     "predictors:report": "tsx src/scripts/predictors_report.ts",
     "import:tracks": "tsx src/core/import/main.ts",
     "recalculate": "tsx src/scripts/recalculate-features.ts",
-    "patch:envelope": "tsx src/scripts/patch-envelope-timeline.ts"
+    "patch:envelope": "tsx src/scripts/patch-envelope-timeline.ts",
+    "patch:full": "tsx src/scripts/patch-envelope-timeline.ts && tsx src/scripts/recalculate-features.ts"
   },
   "type": "module",
   "keywords": [],

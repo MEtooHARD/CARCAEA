@@ -7,18 +7,24 @@ const router = Router();
  * @swagger
  * /songs:
  *   get:
- *     summary: List non-hidden tracks with audio features
+ *     summary: List tracks with audio features
+ *     description: |
+ *       Returns a paginated list of non-hidden tracks joined with their extracted audio
+ *       features. Useful for browsing the music library or building custom UIs.
+ *       Results are not ordered by any recommendation score; use `/recommend` for that.
  *     tags: [Songs]
  *     parameters:
  *       - in: query
  *         name: limit
- *         schema: { type: integer, default: 100 }
+ *         schema: { type: integer, default: 100, maximum: 500 }
+ *         description: Number of tracks to return (max 500).
  *       - in: query
  *         name: offset
  *         schema: { type: integer, default: 0 }
+ *         description: Zero-based offset for pagination.
  *     responses:
  *       200:
- *         description: Track list
+ *         description: Paginated track list with audio features.
  *         content:
  *           application/json:
  *             schema:
@@ -29,7 +35,7 @@ const router = Router();
  *                   items:
  *                     $ref: '#/components/schemas/TrackWithFeatures'
  *       500:
- *         description: Server error
+ *         description: Database error.
  */
 router.get('/', async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 100, 500);
@@ -47,24 +53,30 @@ router.get('/', async (req, res) => {
  * @swagger
  * /songs/{id}:
  *   get:
- *     summary: Get a single track by ID with optional features and envelopes
+ *     summary: Get a single track by ID
+ *     description: |
+ *       Fetches metadata for one track. Optionally includes the extracted audio feature
+ *       scalars (`features`) and/or the full time-series envelopes (`envelopes`).
+ *       Envelopes are large arrays (loudness, chroma matrix, tempo, pulse clarity at 4 Hz)
+ *       and should only be requested when needed.
  *     tags: [Songs]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema: { type: string }
+ *         description: Internal track UUID.
  *       - in: query
  *         name: features
  *         schema: { type: boolean, default: false }
- *         description: Include track_audio_features data
+ *         description: If true, include the track's extracted audio feature scalars (tempo, loudness, mode, etc.).
  *       - in: query
  *         name: envelopes
  *         schema: { type: boolean, default: false }
- *         description: Include track_feat_envelopes data
+ *         description: If true, include the full time-series envelopes (loudness, chroma matrix, tempo, pulse clarity at 4 Hz). Large payload.
  *     responses:
  *       200:
- *         description: Track info
+ *         description: Track data (features and envelopes included only when requested).
  *         content:
  *           application/json:
  *             schema:
@@ -77,7 +89,7 @@ router.get('/', async (req, res) => {
  *                 envelopes:
  *                   $ref: '#/components/schemas/TrackFeatEnvelopes'
  *       404:
- *         description: Track not found
+ *         description: Track not found.
  *       500:
  *         description: Server error
  */

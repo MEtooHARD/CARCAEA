@@ -1,4 +1,8 @@
 import { randomUUID } from 'crypto';
+import { createWriteStream } from 'node:fs';
+import { mkdir } from 'node:fs/promises';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { parseFile } from 'music-metadata';
 import type {
     ExtractPulseClarityTimelineResponse,
@@ -13,7 +17,7 @@ import { snap_values_iterative, mode } from '../../util/math';
 import { db, DATABASE } from '../Database';
 
 const EXTRACTOR_BASE = `http://${process.env.EXTRACTOR ?? 'extractor'}:${process.env.EXTRACTOR_IN_PORT ?? '5000'}`;
-const JAMENDO_CLIENT_ID = process.env.JAMENDO_CLIENT_ID ?? 'b7731e42';
+const JAMENDO_CLIENT_ID = process.env.JAMENDO_KEY;
 
 const DURATION_MIN_S = 90;   // 1m 30s
 const DURATION_MAX_S = 480;  // 8m 00s
@@ -176,7 +180,7 @@ export async function is_already_imported(jamendo_id: number): Promise<boolean> 
 export type ImportOutcome =
     | { status: 'imported'; track_id: string }
     | { status: 'hidden'; track_id: string; reason: string }
-    | { status: 'skipped' }
+    | { status: 'skipped'; track_id?: string }
     | { status: 'failed'; reason: string };
 
 /**
@@ -340,4 +344,56 @@ async function _upsert_meta(track_id: string, meta: JamendoMeta) {
         acousticelectric: meta.acousticelectric,
         tags_source: 'jamendo',
     });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Extended (on-demand) import — download from Jamendo, then full import
+// ─────────────────────────────────────────────────────────────────────────────
+
+const EXTENDED_DIR = '/app/audio_storage/extended';
+
+async function download_audio(url: string, dest_path: string): Promise<void> {
+    await mkdir(dest_path.substring(0, dest_path.lastIndexOf('/')), { recursive: true });
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Download failed (${res.status})`);
+    if (!res.body) throw new Error('Empty response body');
+    await pipeline(Readable.fromWeb(res.body as any), createWriteStream(dest_path));
+}
+
+/**
+ * Download and fully import a Jamendo track on-demand (used by the feedback route
+ * when the submitted track is not yet in the database).
+ *
+ * - Returns { status: 'skipped', track_id } when the track is already in the DB.
+ * - Returns { status: 'failed' } when the track is not streamable on Jamendo.
+ * - Returns { status: 'hidden', track_id } when the track is known but hidden.
+ * - Otherwise downloads to EXTENDED_DIR and runs the full import pipeline.
+ */
+export async function download_and_import_jamendo(jamendo_id: number): Promise<ImportOutcome> {
+    // Check if already in DB (visible or hidden) to avoid re-downloading
+    const existing = await db
+        .selectFrom('track_platform')
+        .innerJoin('track', 'track.id', 'track_platform.track_id')
+        .where('track_platform.platform', '=', 'jamendo')
+        .where('track_platform.platform_id', '=', String(jamendo_id))
+        .select(['track_platform.track_id', 'track.hidden'])
+        .executeTakeFirst()
+        .catch(() => undefined);
+
+    if (existing) {
+        if (existing.hidden) return { status: 'hidden', track_id: existing.track_id, reason: 'known hidden track' };
+        return { status: 'skipped', track_id: existing.track_id };
+    }
+
+    // Verify the track has a downloadable audio URL before committing to a download
+    const meta = await fetch_jamendo_meta(jamendo_id);
+    if (!meta?.audio_url) {
+        return { status: 'failed', reason: 'track is not streamable on Jamendo' };
+    }
+
+    const file_path = `${EXTENDED_DIR}/${jamendo_id}.mp3`;
+    await download_audio(meta.audio_url, file_path);
+
+    // Full feature extraction + DB insert (re-fetches meta internally — acceptable for a background task)
+    return import_track(jamendo_id, file_path);
 }

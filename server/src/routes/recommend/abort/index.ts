@@ -7,7 +7,12 @@ const router = Router();
  * @swagger
  * /recommend/abort:
  *   post:
- *     summary: Log a skipped/aborted recommendation
+ *     summary: Log that a recommended track was skipped or aborted
+ *     description: |
+ *       Called when the user skips a recommended track before finishing it.
+ *       Records the skipped track and optionally the track the user switched to.
+ *       Used to inform future recommendation quality analysis and avoid re-recommending
+ *       tracks the user rejected.
  *     tags: [Recommend]
  *     requestBody:
  *       required: true
@@ -17,13 +22,21 @@ const router = Router();
  *             type: object
  *             required: [user_id, original_track_id]
  *             properties:
- *               user_id:            { type: string }
- *               original_track_id:  { type: string }
- *               alternate_track_id: { type: string }
- *               reclog_id:          { type: integer }
+ *               user_id:
+ *                 type: string
+ *                 description: Unique user identifier (UUID).
+ *               original_track_id:
+ *                 type: string
+ *                 description: Internal UUID of the track that was skipped.
+ *               alternate_track_id:
+ *                 type: string
+ *                 description: Internal UUID of the track the user switched to (optional).
+ *               reclog_id:
+ *                 type: integer
+ *                 description: Recommendation session log ID returned by /recommend (optional but recommended for traceability).
  *     responses:
  *       200:
- *         description: Abort logged
+ *         description: Abort event logged successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -31,9 +44,9 @@ const router = Router();
  *               properties:
  *                 ok: { type: boolean, example: true }
  *       400:
- *         description: Missing required fields
+ *         description: Missing required fields (user_id or original_track_id).
  *       500:
- *         description: Server error
+ *         description: Database error.
  */
 router.post('/', async (req, res) => {
     const {

@@ -17,6 +17,7 @@ router.use('/model', model_router);
  * /user:
  *   post:
  *     summary: Create a new user
+ *     description: Registers a new user and returns the generated UUID. The name does not need to be unique.
  *     tags: [User]
  *     requestBody:
  *       required: true
@@ -26,22 +27,26 @@ router.use('/model', model_router);
  *             type: object
  *             required: [name]
  *             properties:
- *               name: { type: string }
+ *               name:
+ *                 type: string
+ *                 description: Display name for the user.
  *     responses:
  *       200:
- *         description: User created
+ *         description: User created successfully.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 ok: { type: boolean, example: true }
+ *                 id:   { type: string, description: Generated UUID for the new user. }
+ *                 name: { type: string, description: The name provided in the request. }
  *       400:
- *         description: Invalid parameters
+ *         description: name field missing or not a string.
  *       500:
- *         description: Server error
+ *         description: Database error.
  *   put:
- *     summary: Update user name
+ *     summary: Update a user's display name
+ *     description: Replaces the display name for an existing user.
  *     tags: [User]
  *     requestBody:
  *       required: true
@@ -51,21 +56,22 @@ router.use('/model', model_router);
  *             type: object
  *             required: [user_id, name]
  *             properties:
- *               user_id: { type: string }
- *               name:    { type: string }
+ *               user_id: { type: string, description: UUID of the user to update. }
+ *               name:    { type: string, description: New display name. }
  *     responses:
  *       200:
- *         description: User updated
+ *         description: Name updated successfully.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 ok: { type: boolean, example: true }
+ *                 id:   { type: string, description: UUID of the updated user. }
+ *                 name: { type: string, description: The new name. }
  *       400:
- *         description: Invalid parameters
+ *         description: user_id or name missing / not a string.
  *       500:
- *         description: Server error
+ *         description: Database error.
  */
 
 router.post('/', async (req, res) => {
@@ -98,20 +104,25 @@ router.put('/', async (req, res) => {
  * @swagger
  * /user:
  *   get:
- *     summary: Query user by ID or name
+ *     summary: Look up a user by ID or search by name
+ *     description: |
+ *       Two lookup modes depending on which query parameter is supplied:
+ *       - `user_id` (exact match) — returns a single `user` object or 404.
+ *       - `name` (case-insensitive substring search) — returns a `users` array (may be empty).
+ *       Providing both parameters uses `user_id` and ignores `name`.
  *     tags: [User]
  *     parameters:
  *       - in: query
  *         name: user_id
  *         schema: { type: string }
- *         description: Exact user ID lookup
+ *         description: Exact UUID lookup. Returns 404 when not found.
  *       - in: query
  *         name: name
  *         schema: { type: string }
- *         description: Fuzzy name search
+ *         description: Case-insensitive substring search on display name. Returns an array.
  *     responses:
  *       200:
- *         description: Matched user(s)
+ *         description: Matched user or users.
  *         content:
  *           application/json:
  *             schema:
@@ -125,9 +136,9 @@ router.put('/', async (req, res) => {
  *                       type: array
  *                       items: { $ref: '#/components/schemas/User' }
  *       404:
- *         description: User not found
+ *         description: No user found for the given user_id.
  *       500:
- *         description: Server error
+ *         description: Database error.
  */
 router.get('/', async (req, res) => {
     const { user_id, name } = req.query;
@@ -162,11 +173,11 @@ interface BaselineProp {
  * @swagger
  * /user/baseline:
  *   post:
- *     summary: Submit a user HRV baseline for a daytime section.
+ *     summary: Submit a user's resting HRV baseline for a daytime section
  *     description: |
  *       Records the user's resting HRV statistics for a specific daytime section.
  *       These values serve as the personalised normalisation reference for z-score
- *       conversion during recommendation ranking.
+ *       conversion when building training features for the personal XGBoost model.
  *
  *       **Required fields** — `baseline.literal` and `baseline.std`
  *       These are computed from raw HRV readings in the baseline session:
@@ -205,14 +216,17 @@ interface BaselineProp {
  *             properties:
  *               user_id:
  *                 type: string
+ *                 description: UUID of the user submitting the baseline.
  *               baseline:
  *                 $ref: '#/components/schemas/HRVBaseline'
+ *                 description: Computed resting HRV statistics. See schema for required sub-fields.
  *               daytime_section:
  *                 type: string
  *                 enum: [morning, afternoon, evening, night]
+ *                 description: Time-of-day bucket this baseline was measured in. Each section is stored and retrieved independently.
  *     responses:
  *       200:
- *         description: Baseline recorded
+ *         description: Baseline recorded. Returns the generated baseline_id for use in /feedback.
  *         content:
  *           application/json:
  *             schema:
@@ -220,9 +234,9 @@ interface BaselineProp {
  *               properties:
  *                 ok: { type: boolean, example: true }
  *       400:
- *         description: Invalid parameters
+ *         description: Invalid or missing fields.
  *       500:
- *         description: Server error
+ *         description: Database error.
  */
 router.post('/baseline', async (req, res) => {
     const { user_id, baseline, daytime_section } = req.body as BaselineProp;

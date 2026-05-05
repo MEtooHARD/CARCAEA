@@ -156,7 +156,8 @@ type PredictableCandidate = {
  * Use the user's active XGBoost model to rank candidates by predicted HRV
  * distance to the goal state.
  *
- * Returns candidates with an added `distance` field, sorted ascending (best first).
+ * Returns candidates with an added `distance` field, sorted ascending (best first),
+ * together with the `model_id` of the model that was used.
  * Returns `{ data: null }` (no error) when the user has no active model yet —
  * caller should fall back to a simpler ranking.
  */
@@ -165,8 +166,8 @@ export async function rank_by_model<T extends PredictableCandidate>(
     user_hrv: HRVMap,
     goal_hrv: HRVMap,
     user_id: string,
-): Promise<Result<(T & { distance: number })[] | null>> {
-    if (candidates.length === 0) return { data: [], error: null };
+): Promise<Result<{ tracks: (T & { distance: number })[]; model_id: number } | null>> {
+    if (candidates.length === 0) return { data: null, error: null };
 
     const model_res = await DATABASE.Models.get_active(user_id);
     if (model_res.error) return { data: null, error: model_res.error };
@@ -228,5 +229,5 @@ export async function rank_by_model<T extends PredictableCandidate>(
         return { ...c, distance: hrv_distance(predicted_end, goal_hrv) };
     }).sort((a, b) => a.distance - b.distance);
 
-    return { data: ranked, error: null };
+    return { data: { tracks: ranked, model_id: model.id }, error: null };
 }

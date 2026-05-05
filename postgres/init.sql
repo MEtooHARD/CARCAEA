@@ -121,11 +121,11 @@ CREATE TABLE user_hrv_baseline (
     -- ln-scale stats for log-normally distributed metrics (rmssd, lf, hf)
     -- E[ln(x)] and std[ln(x)] computed from the baseline session; NULL if not provided
     rmssd_ln_mean FLOAT8,
-    rmssd_ln_std  FLOAT8,
-    lf_ln_mean    FLOAT8,
-    lf_ln_std     FLOAT8,
-    hf_ln_mean    FLOAT8,
-    hf_ln_std     FLOAT8
+    rmssd_ln_std FLOAT8,
+    lf_ln_mean FLOAT8,
+    lf_ln_std FLOAT8,
+    hf_ln_mean FLOAT8,
+    hf_ln_std FLOAT8
 );
 
 CREATE TABLE xgb_models (
@@ -181,28 +181,42 @@ CREATE TABLE physical_feedback (
     id SERIAL PRIMARY KEY,
     user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     track_id VARCHAR(64) NOT NULL REFERENCES track(id) ON DELETE CASCADE,
+    session_id VARCHAR(64) NOT NULL,
+    index_in_session INT NOT NULL,
+    gap_sec FLOAT8 NOT NULL,
     listen_start_sec FLOAT8 NOT NULL,
     listen_end_sec FLOAT8 NOT NULL,
     reclog_id INT REFERENCES recommendation_log(id) ON DELETE CASCADE,
     baseline_id INT REFERENCES user_hrv_baseline(id) ON DELETE CASCADE,
     daytime_section daytime_section NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    -- user status
+    -- user HRV before listening (1-2 min average)
+    -- rmssd/lf/hf stored as E[ln(x)]
     u_mental_status VARCHAR(32),
     u_hr_literal FLOAT8 NOT NULL,
-    u_rmssd_literal FLOAT8 NOT NULL,
+    u_rmssd_ln FLOAT8 NOT NULL,
     u_sdnn_literal FLOAT8 NOT NULL,
     u_pnn50_literal FLOAT8 NOT NULL,
-    u_lf_literal FLOAT8 NOT NULL,
-    u_hf_literal FLOAT8 NOT NULL,
-    -- actual
+    u_lf_ln FLOAT8 NOT NULL,
+    u_hf_ln FLOAT8 NOT NULL,
+    -- user HRV during listening (mean across listen segment)
+    -- rmssd/lf/hf stored as E[ln(x)]
     r_mental_status VARCHAR(32),
     r_hr_literal FLOAT8 NOT NULL,
-    r_rmssd_literal FLOAT8 NOT NULL,
+    r_rmssd_ln FLOAT8 NOT NULL,
     r_sdnn_literal FLOAT8 NOT NULL,
     r_pnn50_literal FLOAT8 NOT NULL,
-    r_lf_literal FLOAT8 NOT NULL,
-    r_hf_literal FLOAT8 NOT NULL
+    r_lf_ln FLOAT8 NOT NULL,
+    r_hf_ln FLOAT8 NOT NULL,
+    -- target HRV state (goal_hrv from the /recommend request)
+    -- rmssd/lf/hf stored as E[ln(x)]
+    t_mental_status VARCHAR(32),
+    t_hr_literal FLOAT8 NOT NULL,
+    t_rmssd_ln FLOAT8 NOT NULL,
+    t_sdnn_literal FLOAT8 NOT NULL,
+    t_pnn50_literal FLOAT8 NOT NULL,
+    t_lf_ln FLOAT8 NOT NULL,
+    t_hf_ln FLOAT8 NOT NULL
 );
 
 CREATE INDEX ON listen_history (user_id, timestamp DESC);
