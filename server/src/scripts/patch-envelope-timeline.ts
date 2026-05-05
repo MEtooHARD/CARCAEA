@@ -169,10 +169,12 @@ for (let i = 0; i < total; i++) {
             .execute();
 
         // Update track_feat_envelopes (only env_tempo / env_pulse_clarity)
+        const to_pg_array = (arr: number[]) => `{${arr.join(',')}}`;
+
         await db.updateTable('track_feat_envelopes')
             .set({
-                env_tempo: sql`${JSON.stringify(env_tempo)}::jsonb::float8[]`,
-                env_pulse_clarity: sql`${JSON.stringify(env_pulse_clarity)}::jsonb::float8[]`,
+                env_tempo: sql`${to_pg_array(env_tempo)}::float8[]`,
+                env_pulse_clarity: sql`${to_pg_array(env_pulse_clarity)}::float8[]`,
             })
             .where('track_id', '=', row.track_id)
             .execute();
