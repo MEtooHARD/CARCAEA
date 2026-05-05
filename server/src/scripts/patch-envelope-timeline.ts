@@ -171,8 +171,8 @@ for (let i = 0; i < total; i++) {
         // Update track_feat_envelopes (only env_tempo / env_pulse_clarity)
         await db.updateTable('track_feat_envelopes')
             .set({
-                env_tempo: sql`${JSON.stringify(env_tempo)}::jsonb`,
-                env_pulse_clarity: sql`${JSON.stringify(env_pulse_clarity)}::jsonb`,
+                env_tempo: sql`${JSON.stringify(env_tempo)}::jsonb::float8[]`,
+                env_pulse_clarity: sql`${JSON.stringify(env_pulse_clarity)}::jsonb::float8[]`,
             })
             .where('track_id', '=', row.track_id)
             .execute();
