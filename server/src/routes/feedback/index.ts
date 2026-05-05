@@ -5,7 +5,6 @@ import { download_and_import_jamendo } from "../../core/import/handlers";
 
 const router = Router();
 
-const VALID_DAYTIME_SECTIONS = ['morning', 'afternoon', 'evening', 'night'] as const;
 const HRV_FIELDS = ['hr', 'rmssd', 'sdnn', 'pnn50', 'lf', 'hf'] as const;
 
 function validate_hrv(hrv: any, name: string): string | null {
@@ -63,9 +62,10 @@ function validate_hrv(hrv: any, name: string): string | null {
  *                 type: number
  *                 description: Elapsed time in seconds between the end of the previous track and the start of this one (0 for the first track in a session).
  *               daytime_section:
- *                 type: string
- *                 enum: [morning, afternoon, evening, night]
- *                 description: Time-of-day bucket when listening occurred. Used as a feature for the personal model.
+ *                 type: integer
+ *                 minimum: 0
+ *                 maximum: 1439
+ *                 description: Time of day when listening occurred, expressed as minutes since midnight (0 = 00:00, 1439 = 23:59). Used as a continuous feature for the personal model.
  *               listen_segment:
  *                 type: object
  *                 required: [start_sec, end_sec]
@@ -155,7 +155,7 @@ interface Prop {
     session_id: string;      // client-generated session UUID
     index_in_session: number; // 0-based position within the session
     gap_sec: number;         // seconds since previous track ended (0 for first track)
-    daytime_section: string;
+    daytime_section: number;
     listen_segment: { start_sec: number; end_sec: number };
     hrv_before: {
         hr: number; rmssd: number; sdnn: number; pnn50: number; lf: number; hf: number;
@@ -179,7 +179,7 @@ async function insert_feedback(
     session_id: string,
     index_in_session: number,
     gap_sec: number,
-    daytime_section: string,
+    daytime_section: number,
     listen_segment: { start_sec: number; end_sec: number },
     hrv_before: FeedbackHRV,
     hrv_during: FeedbackHRV,
@@ -192,7 +192,7 @@ async function insert_feedback(
     const [feedback, hist] = await Promise.all([
         DATABASE.Recommend.insert_physical_feedback({
             user_id, track_id, session_id, index_in_session, gap_sec,
-            daytime_section: daytime_section as any,
+            daytime_section: daytime_section,
             listen_start_sec: listen_segment.start_sec,
             listen_end_sec: listen_segment.end_sec,
             u_hr_literal: hrv_before.hr,
@@ -277,8 +277,8 @@ router.post('/', async (req, res) => {
         res.status(400).json({ error: 'gap_sec must be a non-negative number' });
         return;
     }
-    if (typeof daytime_section !== 'string' || !VALID_DAYTIME_SECTIONS.includes(daytime_section as any)) {
-        res.status(400).json({ error: `daytime_section must be one of: ${VALID_DAYTIME_SECTIONS.join(', ')}` });
+    if (!Number.isInteger(daytime_section) || daytime_section < 0 || daytime_section > 1439) {
+        res.status(400).json({ error: 'daytime_section must be an integer between 0 and 1439 (minutes since midnight)' });
         return;
     }
     if (typeof listen_segment !== 'object' || listen_segment === null) {

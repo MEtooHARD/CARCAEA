@@ -5,8 +5,6 @@
 
 import type { ColumnType } from "kysely";
 
-export type DaytimeSection = "afternoon" | "evening" | "morning" | "night";
-
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
@@ -52,10 +50,10 @@ export interface ModelTrainingData {
 
 export interface PhysicalFeedback {
   baseline_id: number | null;
-  daytime_section: DaytimeSection;
-  gap_sec: number;
+  daytime_section: number;
+  gap_sec: Generated<number>;
   id: Generated<number>;
-  index_in_session: number;
+  index_in_session: Generated<number>;
   listen_end_sec: number;
   listen_start_sec: number;
   r_hf_ln: number;
@@ -66,14 +64,14 @@ export interface PhysicalFeedback {
   r_rmssd_ln: number;
   r_sdnn_literal: number;
   reclog_id: number | null;
-  session_id: string;
-  t_hf_ln: number;
-  t_hr_literal: number;
-  t_lf_ln: number;
+  session_id: Generated<string>;
+  t_hf_ln: Generated<number>;
+  t_hr_literal: Generated<number>;
+  t_lf_ln: Generated<number>;
   t_mental_status: string | null;
-  t_pnn50_literal: number;
-  t_rmssd_ln: number;
-  t_sdnn_literal: number;
+  t_pnn50_literal: Generated<number>;
+  t_rmssd_ln: Generated<number>;
+  t_sdnn_literal: Generated<number>;
   timestamp: Generated<Timestamp>;
   track_id: string;
   u_hf_ln: number;
@@ -165,7 +163,7 @@ export interface TrackPlatform {
 }
 
 export interface UserHrvBaseline {
-  daytime_section: DaytimeSection;
+  daytime_section: number;
   hf_literal: number;
   hf_std: number;
   hf_ln_mean: number | null;

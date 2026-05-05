@@ -165,7 +165,7 @@ const Users = {
         );
     },
 
-    async get_latest_baseline(user_id: string, daytime_section: string) {
+    async get_latest_baseline(user_id: string, daytime_section: number) {
         return try_catch(
             db.selectFrom('user_hrv_baseline')
                 .where('user_id', '=', user_id)
@@ -272,10 +272,10 @@ const Models = {
                     'pf.daytime_section',
                     'pf.listen_start_sec',
                     'pf.listen_end_sec',
-                    'pf.u_hr_literal', 'pf.u_rmssd_literal', 'pf.u_sdnn_literal',
-                    'pf.u_pnn50_literal', 'pf.u_lf_literal', 'pf.u_hf_literal',
-                    'pf.r_hr_literal', 'pf.r_rmssd_literal', 'pf.r_sdnn_literal',
-                    'pf.r_pnn50_literal', 'pf.r_lf_literal', 'pf.r_hf_literal',
+                    'pf.u_hr_literal', 'pf.u_rmssd_ln', 'pf.u_sdnn_literal',
+                    'pf.u_pnn50_literal', 'pf.u_lf_ln', 'pf.u_hf_ln',
+                    'pf.r_hr_literal', 'pf.r_rmssd_ln', 'pf.r_sdnn_literal',
+                    'pf.r_pnn50_literal', 'pf.r_lf_ln', 'pf.r_hf_ln',
                     'taf.tempo', 'taf.tempo_std', 'taf.mode', 'taf.pulse_clarity',
                     'taf.loud_mean', 'taf.loud_std', 'taf.loud_skewness',
                     'taf.chroma_flux_mean', 'taf.chroma_flux_std', 'taf.chroma_flux_skewness',

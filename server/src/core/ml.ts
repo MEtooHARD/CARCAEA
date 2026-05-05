@@ -7,13 +7,6 @@ import { DATABASE } from './Database';
 import { ML_BASE } from '../config';
 import type { Result } from '../types/Result';
 
-const DAYTIME_ENCODING: Record<string, number> = {
-    morning: 0,
-    afternoon: 1,
-    evening: 2,
-    night: 3,
-};
-
 /**
  * Trigger a full re-train for the given user.
  * Returns the new model_id on success, or an error.
@@ -38,18 +31,18 @@ export async function trigger_train(user_id: string): Promise<Result<number>> {
             row.thumbnail_tempo, row.thumbnail_tempo_std, row.thumbnail_mode, row.thumbnail_pulse_clarity,
             row.thumbnail_loud_mean, row.thumbnail_loud_std, row.thumbnail_loud_skewness,
             row.thumbnail_chroma_flux_mean, row.thumbnail_chroma_flux_std, row.thumbnail_chroma_flux_skewness,
-            row.u_hr_literal, row.u_rmssd_literal, row.u_sdnn_literal,
-            row.u_pnn50_literal, row.u_lf_literal, row.u_hf_literal,
+            row.u_hr_literal, row.u_rmssd_ln, row.u_sdnn_literal,
+            row.u_pnn50_literal, row.u_lf_ln, row.u_hf_ln,
             row.listen_end_sec - row.listen_start_sec,
-            DAYTIME_ENCODING[row.daytime_section] ?? 0,
+            row.daytime_section,
         ],
         delta: {
             hr: row.r_hr_literal - row.u_hr_literal,
-            rmssd: row.r_rmssd_literal - row.u_rmssd_literal,
+            rmssd: row.r_rmssd_ln - row.u_rmssd_ln,
             sdnn: row.r_sdnn_literal - row.u_sdnn_literal,
             pnn50: row.r_pnn50_literal - row.u_pnn50_literal,
-            lf: row.r_lf_literal - row.u_lf_literal,
-            hf: row.r_hf_literal - row.u_hf_literal,
+            lf: row.r_lf_ln - row.u_lf_ln,
+            hf: row.r_hf_ln - row.u_hf_ln,
         },
     }));
 
@@ -119,11 +112,8 @@ export function hrv_distance(a: HRVMap, b: HRVMap): number {
 }
 
 function get_daytime_section(): number {
-    const hour = new Date().getHours();
-    if (hour >= 6 && hour < 12) return 0;  // morning
-    if (hour >= 12 && hour < 17) return 1; // afternoon
-    if (hour >= 17 && hour < 21) return 2; // evening
-    return 3;                               // night
+    const now = new Date();
+    return now.getHours() * 60 + now.getMinutes();
 }
 
 // Minimal shape needed from candidates to build a predict payload

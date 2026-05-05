@@ -6,8 +6,6 @@ import type { HRVBaseline } from "../../types/metrix";
 import { try_catch } from "../../types/Result";
 import model_router from "./model";
 
-export const DAYTIME_OPTIONS = ["afternoon", "evening", "morning", "night"] as const;
-
 const router = Router();
 
 router.use('/model', model_router);
@@ -166,7 +164,7 @@ router.get('/', async (req, res) => {
 interface BaselineProp {
     user_id: string;
     baseline: HRVBaseline;
-    daytime_section: typeof DAYTIME_OPTIONS[number];
+    daytime_section: number;
 }
 
 /**
@@ -221,9 +219,10 @@ interface BaselineProp {
  *                 $ref: '#/components/schemas/HRVBaseline'
  *                 description: Computed resting HRV statistics. See schema for required sub-fields.
  *               daytime_section:
- *                 type: string
- *                 enum: [morning, afternoon, evening, night]
- *                 description: Time-of-day bucket this baseline was measured in. Each section is stored and retrieved independently.
+ *                 type: integer
+ *                 minimum: 0
+ *                 maximum: 1439
+ *                 description: Time of day the baseline was measured, as minutes since midnight (0 = 00:00, 1439 = 23:59). Baselines are stored per time-of-day to capture circadian variation.
  *     responses:
  *       200:
  *         description: Baseline recorded. Returns the generated baseline_id for use in /feedback.
@@ -246,8 +245,8 @@ router.post('/baseline', async (req, res) => {
         return;
     }
 
-    if (!DAYTIME_OPTIONS.includes(daytime_section as any))
-        return res.status(400).json({ error: `daytime_section must be one of: ${DAYTIME_OPTIONS.join(', ')}` });
+    if (!Number.isInteger(daytime_section) || daytime_section < 0 || daytime_section > 1439)
+        return res.status(400).json({ error: 'daytime_section must be an integer between 0 and 1439 (minutes since midnight)' });
 
     const hrv_err = validate_hrv(baseline.literal, 'baseline.literal');
     if (hrv_err) return res.status(400).json({ error: hrv_err });
