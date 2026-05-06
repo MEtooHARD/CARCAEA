@@ -96,7 +96,8 @@ CREATE TABLE track_feat_envelopes (
 CREATE TABLE user_hrv_baseline (
     id SERIAL PRIMARY KEY,
     user_id VARCHAR(64) REFERENCES users(id) ON DELETE CASCADE,
-    daytime_section SMALLINT NOT NULL,  -- minutes since midnight (0–1439)
+    -- minutes since midnight (0–1439)
+    daytime_section SMALLINT NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     -- 
     hr_literal FLOAT8 NOT NULL,
@@ -186,7 +187,8 @@ CREATE TABLE physical_feedback (
     listen_end_sec FLOAT8 NOT NULL,
     reclog_id INT REFERENCES recommendation_log(id) ON DELETE CASCADE,
     baseline_id INT REFERENCES user_hrv_baseline(id) ON DELETE CASCADE,
-    daytime_section SMALLINT NOT NULL,  -- minutes since midnight (0–1439)
+    daytime_section SMALLINT NOT NULL,
+    -- minutes since midnight (0–1439)
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     -- user HRV before listening (1-2 min average)
     -- rmssd/lf/hf stored as E[ln(x)]
