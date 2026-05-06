@@ -1,1 +1,123 @@
-<mxGraphModel><root><mxCell id="0"/><mxCell id="1" parent="0"/></root></mxGraphModel>
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="7X1IvYLm9fjTlBS43GVU">
+    <mxGraphModel dx="2717" dy="618" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="nfSJauF2heSSa1TEnk2R-58" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-56" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="nfSJauF2heSSa1TEnk2R-57">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-56" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="模型&lt;div&gt;預測&lt;/div&gt;" vertex="1">
+          <mxGeometry height="200" width="50" x="-370" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-76" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-57" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="nfSJauF2heSSa1TEnk2R-75">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-57" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=10;" value="HRV 變化" vertex="1">
+          <mxGeometry height="100" width="80" x="-290" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-67" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="非音訊特徵 (e.g., 標籤、歌手)" vertex="1">
+          <mxGeometry height="45" width="220" x="-610" y="752.5" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-71" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="聽者 Context (e.g., 連續聆聽時間)" vertex="1">
+          <mxGeometry height="45" width="220" x="-610" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-72" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="音訊特徵 (e.g., 相對音量、色度、節奏)" vertex="1">
+          <mxGeometry height="45" width="220" x="-610" y="805" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-75" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="依距離排序" vertex="1">
+          <mxGeometry height="47.5" width="120" x="-380" y="930.5" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-81" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="返回結果" vertex="1">
+          <mxGeometry height="47.5" width="120" x="-530" y="930.5" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-82" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-75" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="nfSJauF2heSSa1TEnk2R-81">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-84" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-83" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="nfSJauF2heSSa1TEnk2R-75">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-83" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="目標 HRV" vertex="1">
+          <mxGeometry height="45" width="220" x="-610" y="860" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-97" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="nfSJauF2heSSa1TEnk2R-96">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-1240" y="215" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-99" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-95" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="nfSJauF2heSSa1TEnk2R-98">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-95" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="使用者 HRV 變化" vertex="1">
+          <mxGeometry height="45" width="220" x="-1531" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-100" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-96" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="nfSJauF2heSSa1TEnk2R-98">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-96" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="預測&lt;div&gt;HRV&lt;/div&gt;" vertex="1">
+          <mxGeometry height="120" width="70" x="-1210" y="155" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-116" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-98" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="nfSJauF2heSSa1TEnk2R-107">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-98" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="回饋" vertex="1">
+          <mxGeometry height="37.5" width="70" x="-1300" y="303.75" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-102" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="使用者當下、&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Baseline HRV&lt;/span&gt;" vertex="1">
+          <mxGeometry height="45" width="220" x="-610" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-103" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-102" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.112;entryDx=0;entryDy=0;entryPerimeter=0;" target="nfSJauF2heSSa1TEnk2R-56">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-104" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-71" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.362;entryDx=0;entryDy=0;entryPerimeter=0;" target="nfSJauF2heSSa1TEnk2R-56">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-105" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-67" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.626;entryDx=0;entryDy=0;entryPerimeter=0;" target="nfSJauF2heSSa1TEnk2R-56">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-106" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-72" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.888;entryDx=0;entryDy=0;entryPerimeter=0;" target="nfSJauF2heSSa1TEnk2R-56">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-107" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="模型&lt;div&gt;預測&lt;/div&gt;" vertex="1">
+          <mxGeometry height="200" width="50" x="-1291" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-108" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="非音訊特徵 (e.g., 標籤、歌手)" vertex="1">
+          <mxGeometry height="45" width="220" x="-1531" y="192.5" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-109" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="聽者 Context (e.g., 連續聆聽時間)" vertex="1">
+          <mxGeometry height="45" width="220" x="-1531" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-110" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="音訊特徵 (e.g., 相對音量、色度、節奏)" vertex="1">
+          <mxGeometry height="45" width="220" x="-1531" y="245" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-111" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="使用者當下、&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Baseline HRV&lt;/span&gt;" vertex="1">
+          <mxGeometry height="45" width="220" x="-1531" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-112" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-111" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.112;entryDx=0;entryDy=0;entryPerimeter=0;" target="nfSJauF2heSSa1TEnk2R-107">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-113" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-109" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.362;entryDx=0;entryDy=0;entryPerimeter=0;" target="nfSJauF2heSSa1TEnk2R-107">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-114" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-108" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.626;entryDx=0;entryDy=0;entryPerimeter=0;" target="nfSJauF2heSSa1TEnk2R-107">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-115" edge="1" parent="1" source="nfSJauF2heSSa1TEnk2R-110" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.888;entryDx=0;entryDy=0;entryPerimeter=0;" target="nfSJauF2heSSa1TEnk2R-107">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-117" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="使用者當下、&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Baseline HRV&lt;/span&gt;" vertex="1">
+          <mxGeometry height="45" width="220" x="-1080" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-118" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="聽者 Context (e.g., 連續聆聽時間)" vertex="1">
+          <mxGeometry height="45" width="220" x="-1080" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-119" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="非音訊特徵 (e.g., 標籤、歌手)" vertex="1">
+          <mxGeometry height="45" width="220" x="-1090" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="nfSJauF2heSSa1TEnk2R-120" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="音訊特徵 (e.g., 相對音量、色度、節奏)" vertex="1">
+          <mxGeometry height="45" width="220" x="-1100" y="350" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

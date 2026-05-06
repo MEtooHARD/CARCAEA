@@ -62,9 +62,16 @@ export async function recalculate_features(options: RecalculateOptions = {}): Pr
         const res = await DATABASE.Tracks.find_by_id(filter_id);
         tracks = res.data ? [res.data] : [];
     } else {
-        // Fetch all tracks without hidden ones, with large limit
-        const res = await DATABASE.Tracks.list_with_features(10000, 0);
-        tracks = res.data ?? [];
+        // Fetch all tracks in pages to avoid memory / query limit issues
+        const PAGE = 1000;
+        let offset = 0;
+        while (true) {
+            const res = await DATABASE.Tracks.list_with_features(PAGE, offset);
+            const page = res.data ?? [];
+            tracks.push(...page);
+            if (page.length < PAGE) break;
+            offset += PAGE;
+        }
     }
 
     if (tracks.length === 0) {
