@@ -1,17 +1,23 @@
 <?php
-// Adminer bootstrap with read-only plugin
 function adminer_object() {
-    require 'plugins/plugin.php';
-
-    foreach (glob('plugins-enabled/*.php') as $file) {
-        require_once $file;
-    }
-
-    class AdminerCustom extends AdminerPlugin {
+    class AdminerReadOnly extends Adminer {
         function name() { return 'CARCAEA DB Viewer'; }
+
+        // Hide insert / edit / delete links
+        function editRowPrint($table, $fields, $row, $delete) {}
+        function selectLinks($tableStatus, $set = []) {
+            return ['select' => lang('Select data'), 'table' => lang('Show structure')];
+        }
+
+        // Disable import
+        function importServerPath() { return ''; }
+
+        // Disable dump options
+        function dumpFormat() { return []; }
+        function dumpOutput() { return []; }
     }
 
-    return new AdminerCustom([new AdminerReadOnly()]);
+    return new AdminerReadOnly();
 }
 
 require 'adminer.php';
