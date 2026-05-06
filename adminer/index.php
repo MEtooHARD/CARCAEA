@@ -1,22 +1,15 @@
 <?php
 function adminer_object() {
-    class AdminerReadOnly extends Adminer {
+    class AdminerReadOnly {
         function name() { return 'CARCAEA DB Viewer'; }
-
-        // Hide insert / edit / delete links
         function editRowPrint($table, $fields, $row, $delete) {}
         function selectLinks($tableStatus, $set = []) {
-            return ['select' => lang('Select data'), 'table' => lang('Show structure')];
+            return ['select' => 'Select data', 'table' => 'Show structure'];
         }
-
-        // Disable import
         function importServerPath() { return ''; }
-
-        // Disable dump options
         function dumpFormat() { return []; }
         function dumpOutput() { return []; }
     }
-
     return new AdminerReadOnly();
 }
 
