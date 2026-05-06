@@ -1,16 +1,12 @@
 <?php
 function adminer_object() {
-    class AdminerReadOnly {
-        function name() { return 'CARCAEA DB Viewer'; }
-        function editRowPrint($table, $fields, $row, $delete) {}
-        function selectLinks($tableStatus, $set = []) {
-            return ['select' => 'Select data', 'table' => 'Show structure'];
-        }
-        function importServerPath() { return ''; }
-        function dumpFormat() { return []; }
-        function dumpOutput() { return []; }
+    require 'plugins/plugin.php';
+
+    foreach (glob('plugins-enabled/*.php') as $file) {
+        require_once $file;
     }
-    return new AdminerReadOnly();
+
+    return new AdminerPlugin([new AdminerReadOnly()]);
 }
 
 require 'adminer.php';
