@@ -48,7 +48,7 @@ services:
     ports:
       - "${DATABASE_HOST_PORT}:${DATABASE_IN_PORT}"
   adminer:
-    build: ./adminer
+    image: adminer:4
     container_name: adminer
     depends_on:
       - postgres
