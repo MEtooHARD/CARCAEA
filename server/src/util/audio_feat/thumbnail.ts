@@ -189,12 +189,11 @@ export function generateSSMDiagnostics(
  * 
  * 流程：
  * 1️⃣ 輸入驗證 (維度、長度)
- * 2️⃣ 計算基礎 SSM (Transposition Invariant Cosine Similarity)
- * 3️⃣ 標準化響度到 [0, 1] (Min-Max Normalization)
- * 4️⃣ 加入響度雙向權重: SSM[i,j] *= L_norm[i] * L_norm[j]
- * 5️⃣ 對角線平滑化 (Diagonal Smoothing, 2 秒窗)
- * 6️⃣ 閾值懲罰 (低於 threshold 的分數設為 penalty)
- * 7️⃣ 滑動窗口尋找最高分縮圖 (30 秒)
+ * 2️⃣ 計算純結構 SSM (Transposition Invariant Cosine Similarity)
+ * 3️⃣ 閾值懲罰 (低於 threshold 的分數設為 penalty)
+ * 4️⃣ 對角線平滑化 (Diagonal Smoothing, 2 秒窗)
+ * 5️⃣ 滑動窗口找最高分縮圖 (30 秒)
+ * 6️⃣ 響度加權：對每個候選段落的 score 乘以該段落的平均響度 (外部加權)
  */
 export function extractThumbnail(
     chromaMatrix: ChromaMatrix[],
@@ -216,34 +215,56 @@ export function extractThumbnail(
     console.log(`   - Input: ${chromaMatrix.length} frames`);
     console.log(`   - Duration: ${(chromaMatrix.length / finalConfig.samplingRate).toFixed(1)}s`);
 
-    // 步驟 1-2: 計算基礎 SSM (含轉調不變性)
+    // 步驟 1: 計算純結構 SSM (含轉調不變性)
     console.log(`⏳ Step 1: Computing transposition-invariant SSM...`);
     const SSM = chromaSSM(chromaMatrix);
 
+    // 步驟 2: 閾值懲罰
     const penalizedSSM = SSM.map(row =>
         row.map(val => (val < finalConfig.threshold ? finalConfig.penalty : val))
     );
 
-    // 步驟 3-4: 標準化響度並套用雙向權重
-    console.log(`⏳ Step 2: Normalizing loudness and weighting...`);
+    // 步驟 3: 對角線平滑
+    console.log(`⏳ Step 2: Diagonal smoothing...`);
+    const smoothedSSM = diagonal_smooth(penalizedSSM, finalConfig.smoothingWindow);
+
+    // 步驟 4: 滑動視窗，對每個候選段落計算 structural score 並乘以平均響度
+    console.log(`⏳ Step 3: Extracting thumbnail with loudness weighting (${finalConfig.thumbnailDuration}s window)...`);
     const L_norm = MinMax(loudness);
-    const L_weighted_SSM = penalizedSSM.map(
-        (row, i) => row.map(
-            (val, j) => val * L_norm[i] * L_norm[j]
-        )
-    );
+    const N = smoothedSSM.length;
+    const windowFrames = Math.round(finalConfig.thumbnailDuration * finalConfig.samplingRate);
 
-    // 步驟 5-6: 對角線平滑 + 閾值懲罰
-    console.log(`⏳ Step 3: Diagonal smoothing and thresholding...`);
-    const smoothedSSM = diagonal_smooth(L_weighted_SSM, finalConfig.smoothingWindow);
+    if (windowFrames > N)
+        throw new Error(`Thumbnail duration (${windowFrames} frames) exceeds total length (${N} frames)`);
 
-    // 步驟 7: 滑動視窗尋找縮圖
-    console.log(`⏳ Step 4: Extracting thumbnail (${finalConfig.thumbnailDuration}s window)...`);
-    const result = findThumbnail(smoothedSSM, finalConfig);
+    let maxScore = -Infinity;
+    let bestStart = 0;
+    let bestCoverage = 0;
+
+    for (let i = 0; i <= N - windowFrames; i++) {
+        const { score, coverage } = computeFitnessScore(smoothedSSM, i, windowFrames);
+        const meanLoudness = L_norm.slice(i, i + windowFrames).reduce((a, b) => a + b, 0) / windowFrames;
+        const weightedScore = score * meanLoudness;
+        if (weightedScore > maxScore) {
+            maxScore = weightedScore;
+            bestStart = i;
+            bestCoverage = coverage;
+        }
+    }
+
+    const bestEnd = bestStart + windowFrames;
+    const result: ThumbnailResult = {
+        start_frame: bestStart,
+        end_frame: bestEnd,
+        start_sec: bestStart / finalConfig.samplingRate,
+        end_sec: bestEnd / finalConfig.samplingRate,
+        score: maxScore,
+        coverage: bestCoverage,
+    };
 
     console.log(`✅ Thumbnail extracted:`);
     console.log(`   - Segment: ${result.start_sec.toFixed(2)}s - ${result.end_sec.toFixed(2)}s`);
-    console.log(`   - Score: ${result.score.toFixed(2)}`);
+    console.log(`   - Score: ${result.score.toFixed(4)}`);
     console.log(`   - Coverage: ${(result.coverage * 100).toFixed(1)}%`);
 
     return result;
