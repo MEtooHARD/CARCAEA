@@ -175,6 +175,25 @@ const Users = {
                 .executeTakeFirst()
         );
     },
+
+    /**
+     * Fetch the per-user HRV std fields needed to z-score the α computation.
+     * Selects the baseline record whose daytime_section is nearest to the given
+     * minute-of-day using circular distance (day wraps at 1440 minutes).
+     * Returns null when no baseline exists for this user.
+     */
+    async get_hrv_stats(user_id: string, daytime_section: number): Promise<Result<{ hr_std: number, rmssd_ln_std: number | null, sdnn_std: number } | null>> {
+        return try_catch(
+            db.selectFrom('user_hrv_baseline')
+                .where('user_id', '=', user_id)
+                .select(['hr_std', 'rmssd_ln_std', 'sdnn_std'])
+                // circular distance: min(|a−b|, 1440 − |a−b|)
+                .orderBy(sql`least(abs(daytime_section - ${daytime_section}), 1440 - abs(daytime_section - ${daytime_section}))`, 'asc')
+                .limit(1)
+                .executeTakeFirst()
+                .then(row => row ?? null)
+        );
+    },
 };
 
 // ============================================================================
@@ -350,11 +369,15 @@ const Recommend = {
     },
 
     /** Random N non-hidden tracks with audio features, excluding given track IDs. */
-    async random_candidates(exclude_ids: string[], n = 200) {
+    async random_candidates(exclude_ids: string[], n = 200, tempo_range?: [number, number]) {
         let query = db.selectFrom('track')
             .innerJoin('track_audio_features', 'track_audio_features.track_id', 'track.id')
             .innerJoin('track_platform', 'track_platform.track_id', 'track.id')
             .where('track.hidden', '=', false)
+            .$if(tempo_range !== undefined, qb => qb
+                .where('track_audio_features.thumbnail_tempo', '>=', tempo_range![0])
+                .where('track_audio_features.thumbnail_tempo', '<=', tempo_range![1])
+            )
             .select([
                 'track.id as track_id',
                 'track.name',
@@ -417,6 +440,34 @@ const History = {
                 .select('track_id')
                 .execute()
                 .then(rows => rows.map(r => r.track_id))
+        );
+    },
+
+    /**
+     * Fetch the most recent listen timestamp per track within the last `within_days` days.
+     * Returns a map of track_id → Date (the most recent listen of that track).
+     * Tracks not in the result were not listened to within the window.
+     */
+    async recent_with_timestamps(user_id: string, within_days: number, candidate_ids: string[]): Promise<Result<Map<string, Date>>> {
+        const cutoff = new Date(Date.now() - within_days * 24 * 60 * 60 * 1000);
+        return try_catch(
+            db.selectFrom('listen_history')
+                .where('user_id', '=', user_id)
+                .where('timestamp', '>=', cutoff)
+                .where('track_id', 'in', candidate_ids as any)
+                .orderBy('timestamp', 'desc')
+                .select(['track_id', 'timestamp'])
+                .execute()
+                .then(rows => {
+                    const map = new Map<string, Date>();
+                    for (const row of rows) {
+                        // orderBy desc means first occurrence per track_id is the most recent
+                        if (!map.has(row.track_id)) {
+                            map.set(row.track_id, row.timestamp as unknown as Date);
+                        }
+                    }
+                    return map;
+                })
         );
     },
 };
