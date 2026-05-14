@@ -437,11 +437,11 @@ function compute_weights(alpha: number, mood_state?: MoodState) {
 /**
  * Compute the physioacoustic recommendation score for a single candidate track.
  *
- * @param track        Audio feature row (global + thumbnail).
- * @param current_hrv  User's current measured HRV state.
- * @param goal_hrv     Target HRV state the user wants to reach.
- * @param options      Optional tuning knobs (population stats, normalisation ceiling).
- * @returns            Score breakdown including the 0–100 total.
+ * @param track          Audio feature row (global + thumbnail).
+ * @param current_hrv    User's current measured HRV state.
+ * @param goal_hrv       Target HRV state the user wants to reach.
+ * @param options        Optional tuning knobs (population stats, normalisation ceiling).
+ * @returns              Score breakdown including the 0–100 total.
  */
 export function compute_phys_acous_score(
     track: ScoringFields,
@@ -449,14 +449,27 @@ export function compute_phys_acous_score(
     goal_hrv: HRV,
     options: PhysAcousOptions = {},
 ): PhysAcousScoreDetail {
+    const alpha = compute_alpha(current_hrv, goal_hrv, options.user_hrv_stats);
+    const target_tempo = compute_target_tempo(current_hrv, goal_hrv, alpha);
+    return score_with_precomputed(track, alpha, target_tempo, options);
+}
+
+/**
+ * Inner scoring path used by `rank_by_phys_acous` when α and target_tempo have
+ * already been computed once for the whole batch.
+ */
+function score_with_precomputed(
+    track: ScoringFields,
+    alpha: number,
+    target_tempo: number,
+    options: PhysAcousOptions,
+): PhysAcousScoreDetail {
     const {
         chroma_flux_std_p50 = 0.15,
         loud_std_max_db = 12,
     } = options;
 
-    const alpha = compute_alpha(current_hrv, goal_hrv, options.user_hrv_stats);
     const scenario = alpha_to_scenario(alpha);
-    const target_tempo = compute_target_tempo(current_hrv, goal_hrv, alpha);
 
     const sub = {
         tempo: score_tempo(track, target_tempo),
@@ -496,6 +509,10 @@ export function rank_by_phys_acous<T extends ScoringFields>(
     goal_hrv: HRV,
     options: PhysAcousOptions = {},
 ): (T & { phys_acous: PhysAcousScoreDetail })[] {
+    // Compute request-level constants once — identical for every candidate
+    const alpha = compute_alpha(current_hrv, goal_hrv, options.user_hrv_stats);
+    const target_tempo = compute_target_tempo(current_hrv, goal_hrv, alpha);
+
     // Estimate PR50 from pool when not supplied
     const p50 = options.chroma_flux_std_p50 ?? estimate_p50(
         candidates.map(c => c.chroma_flux_std),
@@ -505,7 +522,7 @@ export function rank_by_phys_acous<T extends ScoringFields>(
     return candidates
         .map(c => ({
             ...c,
-            phys_acous: compute_phys_acous_score(c, current_hrv, goal_hrv, resolved_options),
+            phys_acous: score_with_precomputed(c, alpha, target_tempo, resolved_options),
         }))
         .sort((a, b) => b.phys_acous.total - a.phys_acous.total);
 }

@@ -196,11 +196,10 @@ router.post('/', async (req, res) => {
         user_hrv
     );
     if (log.error) {
-        res.status(500).json({ error: 'Failed to log recommendation' });
-        return;
+        console.warn('[recommend] Failed to log recommendation (user may not exist in users table):', log.error);
     }
 
-    res.status(200).json({ reclog_id: log.data, ranked_by: 'phys_acous', tracks: sorted });
+    res.status(200).json({ reclog_id: log.data ?? null, ranked_by: 'phys_acous', tracks: sorted });
 });
 
 router.use('/abort', abort);
