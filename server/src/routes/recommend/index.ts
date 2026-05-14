@@ -99,7 +99,10 @@ export function validate_hrv(hrv: any, name: string): string | null {
  *               properties:
  *                 reclog_id:
  *                   type: integer
- *                   description: Recommendation session log ID. Pass this to /feedback and /recommend/abort.
+ *                   nullable: true
+ *                   description: >
+ *                     Recommendation session log ID. Pass this to /feedback and /recommend/abort.
+ *                     Returns null if the user_id does not exist in the users table (log skipped with a server-side warning).
  *                 ranked_by:
  *                   type: string
  *                   enum: [phys_acous]
