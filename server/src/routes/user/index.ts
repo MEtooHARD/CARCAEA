@@ -4,11 +4,10 @@ import { DATABASE, db } from "../../core/Database";
 import { validate_hrv } from "../recommend";
 import type { HRVBaseline } from "../../types/metrix";
 import { try_catch } from "../../types/Result";
-import model_router from "./model";
 
 const router = Router();
 
-router.use('/model', model_router);
+// router.use('/model', model_router);
 
 /**
  * @swagger
@@ -269,11 +268,11 @@ router.post('/baseline', async (req, res) => {
         hf_std: baseline.std.hf,
         // ln-scale stats (optional — null when not provided)
         rmssd_ln_mean: baseline.ln_mean?.rmssd ?? null,
-        rmssd_ln_std:  baseline.ln_std?.rmssd  ?? null,
-        lf_ln_mean:    baseline.ln_mean?.lf    ?? null,
-        lf_ln_std:     baseline.ln_std?.lf     ?? null,
-        hf_ln_mean:    baseline.ln_mean?.hf    ?? null,
-        hf_ln_std:     baseline.ln_std?.hf     ?? null,
+        rmssd_ln_std: baseline.ln_std?.rmssd ?? null,
+        lf_ln_mean: baseline.ln_mean?.lf ?? null,
+        lf_ln_std: baseline.ln_std?.lf ?? null,
+        hf_ln_mean: baseline.ln_mean?.hf ?? null,
+        hf_ln_std: baseline.ln_std?.hf ?? null,
     });
 
     if (insert_res.error) return res.status(500).json({ error: 'Error when adding baseline' });
