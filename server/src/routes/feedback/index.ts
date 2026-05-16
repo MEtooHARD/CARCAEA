@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { DATABASE, db } from "../../core/Database";
-import { trigger_train, RETRAIN_THRESHOLD } from "../../core/ml";
+// import { trigger_train, RETRAIN_THRESHOLD } from "../../core/ml";
 import { download_and_import_jamendo } from "../../core/import/handlers";
 
 const router = Router();
@@ -225,17 +225,17 @@ async function insert_feedback(
     if (hist.error) return { feedback_id: null, error: 'Failed to save listen history' };
 
     // Auto-trigger retrain (fire-and-forget)
-    DATABASE.Models.count_feedback(user_id).then(count_res => {
-        if (!count_res.error && count_res.data! % RETRAIN_THRESHOLD === 0) {
-            trigger_train(user_id).then(train_res => {
-                if (train_res.error) {
-                    console.error(`[ml] Auto-train failed for user ${user_id}:`, train_res.error);
-                } else {
-                    console.log(`[ml] Auto-train complete for user ${user_id}, model_id=${train_res.data}`);
-                }
-            });
-        }
-    });
+    // DATABASE.Models.count_feedback(user_id).then(count_res => {
+    //     if (!count_res.error && count_res.data! % RETRAIN_THRESHOLD === 0) {
+    //         trigger_train(user_id).then(train_res => {
+    //             if (train_res.error) {
+    //                 console.error(`[ml] Auto-train failed for user ${user_id}:`, train_res.error);
+    //             } else {
+    //                 console.log(`[ml] Auto-train complete for user ${user_id}, model_id=${train_res.data}`);
+    //             }
+    //         });
+    //     }
+    // });
 
     return { feedback_id: feedback.data ?? null };
 }
