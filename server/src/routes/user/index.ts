@@ -152,6 +152,7 @@ router.get('/', async (req, res) => {
     if (typeof name === 'string' && name) {
         const users = await try_catch(db.selectFrom('users')
             .where('name', 'ilike', `%${name}%`)
+            .selectAll()
             .execute());
 
         if (users.error)
